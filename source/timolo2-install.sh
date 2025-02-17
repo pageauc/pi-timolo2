@@ -158,7 +158,7 @@ for fname in "${rcloneFiles[@]}" ; do
 done
 chmod +x *sh
 
-cd $TIMOLO2_DIR
+cd ..
 
 rclone_install=true
 if [ -f /usr/bin/rclone ]; then
