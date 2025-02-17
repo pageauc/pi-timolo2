@@ -37,8 +37,8 @@ INFO  : $progName $ver  written by Claude Pageau
 if $is_upgrade ; then
   timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
   "webserver.py" "webserver.sh" \
-  "makevideo.sh" "mvleavelast.sh" "remote-run.sh" \
-  "supervisor/timolo2-cam.conf" "supervisor/timolo2-web.conf" )
+  "makevideo.sh" "mvleavelast.sh" "remote-run.sh" )
+
 
   if [ ! -f config.cfg ]; then
     mv plugins plugins.bak
@@ -49,8 +49,8 @@ if $is_upgrade ; then
 else   # New Install
   timoloFiles=("config.py" "menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
   "webserver.py" "webserver.sh" \
-  "makevideo.sh" "video.conf" "mvleavelast.sh" "remote-run.sh" \
-  "supervisor/timolo2-cam.conf" "supervisor/timolo2-web.conf" )
+  "makevideo.sh" "video.conf" "mvleavelast.sh" "remote-run.sh" )
+
 fi
 
 for fname in "${timoloFiles[@]}" ; do
@@ -72,11 +72,15 @@ if [ $? -ne 0 ] ;  then
     wget -O Readme.md https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
     wget -O media/webserver.txt https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
     wget -O rclone-test.sh https://raw.github.com/pageauc/pi-timolo2/master/source/rclone-samples/rclone-master.sh
+	wget -O supervisor/timolo2-cam.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
+	wget -O supervisor/timolo2-web.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf		
 else
     wget -O video.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
     wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
     wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
     wget -O rclone-test.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/rclone-samples/rclone-master.sh
+	wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
+	wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf	
 fi
 
 chmod +x *py
