@@ -40,16 +40,13 @@ timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cf
 "webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py" "Readme.md")
 
 for fname in "${timoloFiles[@]}" ; do
+
     wget_output=$(wget -O $fname -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
-    if [ $? -ne 0 ]; then
-        if [ $? -ne 0 ]; then
-            echo "ERROR - $fname wget Download Failed. Possible Cause Internet Problem."
-        else
-            wget -O $fname https://raw.github.com/pageauc/pi-timolo2/master/source/$fname
-        fi
-    fi
+
 done
 
+wget -O media/webserver.txt https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
+wget -q --show-progress -nc https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
 
 if [ -f config.py ]; then     # check if local file exists.
     wget -O config.py.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
@@ -63,16 +60,8 @@ else
     wget -O video.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
 fi
 
-if [ -f user_motion_code.py ]; then     # check if local file exists.
-    wget -O user_motion_code.py.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
-else
-    wget -O user_motion_code.py -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
-fi
-
-wget -O media/webserver.txt https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
-
-if [ ! -f rclone-security-sync-recent.sh ] ; then
-    wget -O rclone-security-sync-recent.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/plugins/rclone-security-sync-recent.sh
+if [ ! -f rclone-example.sh ] ; then
+    wget -O rclone-example.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/plugins/rclone-security-sync-recent.sh
 fi
 
 chmod +x *py
