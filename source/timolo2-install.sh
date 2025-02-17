@@ -226,8 +226,8 @@ Minimal Instructions:
 
 3 - If config.py already exists then latest file will be config.py.new
 
-4 - If using Bulleye run raspi-config, System Options. Make sure camera is NOT in Legacy mode.
-    test pi-camera. See commands below
+4 - If using Bulleye run sudo raspi-config, Interface Options, 3. 
+    Make sure camera is NOT in Legacy mode. Test camera. See commands below
 	
 	sudo raspi-config              % Check System Options Bullseye Only
 	libcamera-hello --list-cameras 
