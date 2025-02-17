@@ -252,7 +252,7 @@ INFO  : $STATUS Complete ver 12.0
 Minimal Instructions:
 1 - Run sudo raspi-config Interfacing Options and enable I2C and Pi Camera
 2 - It is suggested you run sudo apt-get update and sudo apt-get upgrade
-    Reboot RPI if there are significant Raspbian system updates.
+    Reboot RPI if there are significant Raspbian OS system updates.
 3 - If config.py already exists then latest file is config.py.new
 4 - To Test Run pi-timolo2 execute the following commands in RPI SSH
     or terminal session. Default is Motion Track On and TimeLapse On
@@ -263,7 +263,9 @@ Minimal Instructions:
 5 - To manage pi-timolo2, Run menubox.sh Execute commands below
 
     cd ~/pi-timolo2
-    ./menubox.sh"
+    ./menubox.sh
+	
+6	You will need to run timolo.sh install and/or webserver.install to enable supervisorctl operation.
 
 if $is_upgrade ; then
     echo "
