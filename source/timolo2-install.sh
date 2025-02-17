@@ -8,22 +8,23 @@ TIMOLO2_DIR='pi-timolo2'  # Default folder install location
 rclone_cur_ver="rclone v1.69.1"
 
 cd ~
+
 is_upgrade=false
-if [ -d "$TIMOLO2_DIR" ] ; then
+if [ -d "$TIMOLO_DIR" ] ; then
   STATUS="Upgrade"
-  echo "INFO  : Upgrade pi-timolo2 files"
   is_upgrade=true
 else
-  echo "INFO  : New pi-timolo2 Install"
   STATUS="New Install"
   mkdir -p $TIMOLO2_DIR
-  mkdir -p $TIMOLO2_DIR/media
-  mkdir -p $TIMOLO2_DIR/supervisor
-  echo "INFO  : $TIMOLO2_DIR Folder Created"
+  echo "$STATUS Created Folder $SPEED_DIR"
 fi
 
 cd $TIMOLO2_DIR
 INSTALL_PATH=$( pwd )
+mkdir -p media
+mkdir -p supervisor
+mkdir -p plugins
+mkdir -p rclone-samples
 
 # Remember where this script was launched from
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -39,18 +40,15 @@ if $is_upgrade ; then
   "webserver.py" "webserver.sh" \
   "makevideo.sh" "mvleavelast.sh" )
 
-
   if [ ! -f config.cfg ]; then
     mv plugins plugins.bak
     mkdir -p data
     mv *dat data
   fi
-
 else   # New Install
   timoloFiles=("config.py" "menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
   "webserver.py" "webserver.sh" \
   "makevideo.sh" "video.conf" "mvleavelast.sh" )
-
 fi
 
 for fname in "${timoloFiles[@]}" ; do
