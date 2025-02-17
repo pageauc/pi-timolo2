@@ -36,20 +36,20 @@ INFO  : $progName $ver  written by Claude Pageau
 "
 echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
-timolo2Files=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" "strmpilibcam.py" \
-"webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py" "Readme.md" )
+timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" "strmpilibcam.py" \
+"webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py" "Readme.md")
 
-for fname in "${timolo2Files[@]}" ; do
+for fname in "${timoloFiles[@]}" ; do
     wget_output=$(wget -O $fname -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
     if [ $? -ne 0 ]; then
-        wget_output=$(wget -O $fname -q https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
         if [ $? -ne 0 ]; then
-            echo "ERROR : $fname wget Download Failed. Possible Cause Internet Problem."
+            echo "ERROR - $fname wget Download Failed. Possible Cause Internet Problem."
         else
             wget -O $fname https://raw.github.com/pageauc/pi-timolo2/master/source/$fname
         fi
     fi
 done
+
 
 if [ -f config.py ]; then     # check if local file exists.
     wget -O config.py.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
