@@ -37,7 +37,7 @@ INFO  : $progName $ver  written by Claude Pageau
 echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
 timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" "strmpilibcam.py" \
-"webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py" "Readme.md")
+"webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
 
 for fname in "${timoloFiles[@]}" ; do
 
