@@ -268,27 +268,10 @@ Minimal Instructions:
 	
 6	You will need to run timolo.sh install and/or webserver.install to enable supervisorctl operation.
 
-if $is_upgrade ; then
-    echo "
-IMPORTANT: timolo2.py ver 10.x Adds a Sched StartAt Feature.
-           If timolo2.py gives error messages on start
-           then the latest config.py may not be configured.
-           Install per commands below if Required.
 
-           pi-timolo2.py ver 12.0 Adds pantilt panoramic image stitching option
-           See config.py for variable comments.
-
-    cd ~/pi-timolo2
-    cp config.py config.py.bak
-    cp config.py.new config.py
-    nano config.py
-
-    Use nano to Restore Custom Settings from config.py.bak then ctrl-x y to Save and Exit
-    For Details See Wiki at
-    https://github.com/pageauc/pi-timolo2/wiki/How-to-Schedule-Motion,-Timelapse-or-VideoRepeat"
-
-    For help See Wiki at https://github.com/pageauc/pi-timolo2/wiki
+    For help See https://github.com/pageauc/pi-timolo2/
 
     Good Luck Claude ...
-    Bye"
+
+Bye"
 
