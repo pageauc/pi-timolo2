@@ -34,22 +34,10 @@ INFO  : $progName $ver  written by Claude Pageau
         $STATUS from https://github.com/pageauc/pi-timolo2
 -------------------------------------------------------------
 "
-# check if this is an upgrade and bypass update of configuration files
-if $is_upgrade ; then
-  timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
-  "webserver.py" "webserver.sh" \
-  "makevideo.sh" "mvleavelast.sh" )
+echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
-  if [ ! -f config.cfg ]; then
-    mv plugins plugins.bak
-    mkdir -p data
-    mv *dat data
-  fi
-else   # New Install
-  timoloFiles=("config.py" "menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
-  "webserver.py" "webserver.sh" \
-  "makevideo.sh" "video.conf" "mvleavelast.sh" )
-fi
+timolo2Files=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" "strmpilibcam.py" \
+"webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py" "Readme.md" )
 
 for fname in "${timoloFiles[@]}" ; do
     wget_output=$(wget -O $fname -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
@@ -63,26 +51,33 @@ for fname in "${timoloFiles[@]}" ; do
     fi
 done
 
-wget -O config.py.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
-if [ $? -ne 0 ] ;  then
-    wget -O config.py.new https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
-    wget -O video.conf.new https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
-    wget -O Readme.md https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
-    wget -O media/webserver.txt https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
-    wget -O rclone-test.sh https://raw.github.com/pageauc/pi-timolo2/master/source/rclone-samples/rclone-master.sh
-	wget -O supervisor/timolo2-cam.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
-	wget -O supervisor/timolo2-web.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf		
+if [ -f config.py ]; then     # check if local file exists.
+    wget -O config.py.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
 else
+    wget -O config.py -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
+fi
+
+if [ -f video.conf ]; then     # check if local file exists.
     wget -O video.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
-    wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
-    wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
-    wget -O rclone-test.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/rclone-samples/rclone-master.sh
-	wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
-	wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf	
+else
+    wget -O video.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
+fi
+
+if [ -f user_motion_code.py ]; then     # check if local file exists.
+    wget -O user_motion_code.py.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
+else
+    wget -O user_motion_code.py -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
+fi
+
+wget -O media/webserver.txt https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
+
+if [ ! -f rclone-security-sync-recent.sh ] ; then
+    wget -O rclone-security-sync-recent.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/plugins/rclone-security-sync-recent.sh
 fi
 
 chmod +x *py
 chmod -x config*py
+chmod -x strmpilibcam.py
 chmod +x *sh
 
 echo "copy image-stitching to /usr/local/bin"
@@ -90,32 +85,16 @@ chmod +x image-stitching
 sudo cp ./image-stitching /usr/local/bin
 rm ./image-stitching
 
-if [ ! -f user_motion_code.py ] ; then   # wget user_motion_code.py file if it does not exist
-    wget -O user_motion_code.py -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
-    if [ $? -ne 0 ] ;  then
-        wget -O user_motion_code.py https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
-    fi
-fi
-
-
-if [ ! -f video.conf ] ; then
-    cp video.conf.new video.conf
-fi
-
-if [ ! -f config.py ] ; then
-    cp config.py.new config.py
-fi
-cp config.py config.py.prev   # make copy of previous configuration
-
 
 # Install plugins if not already installed.  You must delete a plugin file to force reinstall.
 echo "INFO  : $STATUS Check/Install pi-timolo2/plugins    Wait ..."
+
 PLUGINS_DIR='plugins'  # Default folder install location
+
 # List of plugin Files to Check
 pluginFiles=("__init__.py" "dashcam.py" "secfast.py" "secQTL.py" "secstill.py" \
 "secvid.py" "strmvid.py" "shopcam.py" "slowmo.py" "TLlong.py" "TLshort.py" "TLpan.py" "pano.py")
 
-mkdir -p $PLUGINS_DIR
 cd $PLUGINS_DIR
 for fname in "${pluginFiles[@]}" ; do
   if [ -f $fname ]; then     # check if local file exists.
@@ -263,7 +242,7 @@ Minimal Instructions:
 
     cd ~/pi-timolo2
     ./menubox.sh
-	
+
 6	You will need to run timolo.sh install and/or webserver.install to enable supervisorctl operation.
 
 
