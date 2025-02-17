@@ -35,7 +35,7 @@ INFO  : $progName $ver  written by Claude Pageau
 # check if this is an upgrade and bypass update of configuration files
 if $is_upgrade ; then
   timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
-  "webserver.py" "webserver.sh" "pantilthat.py" \
+  "webserver.py" "webserver.sh" \
   "convid.sh" "makevideo.sh" "mvleavelast.sh" "remote-run.sh" \
   "supervisor/timolo2-cam.conf" "supervisor/timolo2-web.conf" )
 
@@ -47,7 +47,7 @@ if $is_upgrade ; then
 
 else   # New Install
   timoloFiles=("config.py" "menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
-  "webserver.py" "webserver.sh" "watch-app.sh" "shutdown.py" "pantilthat.py" \
+  "webserver.py" "webserver.sh" \
   "convid.sh" "makevideo.sh" "video.conf" "mvleavelast.sh" "remote-run.sh" \
   "supervisor/timolo2-cam.conf" "supervisor/timolo2-web.conf" )
 fi
@@ -67,13 +67,11 @@ done
 wget -O config.py.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
 if [ $? -ne 0 ] ;  then
     wget -O config.py.new https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
-    wget -O watch-app-new.sh https://raw.github.com/pageauc/pi-timolo2/master/source/watch-app.sh
     wget -O video.conf.new https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
     wget -O Readme.md https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
     wget -O media/webserver.txt https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
     wget -O rclone-test.sh https://raw.github.com/pageauc/pi-timolo2/master/source/rclone-samples/rclone-master.sh
 else
-    wget -O watch-app-new.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/watch-app.sh
     wget -O video.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
     wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
     wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
