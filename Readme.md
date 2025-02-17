@@ -11,12 +11,16 @@ Low Light below the uses a different algorithm based on a video stream thread fr
 Consider this release Beta.  I am still testing.  Issues are welcome
 
 ### For Details See [Program Features](https://github.com/pageauc/pi-timolo/wiki/Introduction#program-features) and [Wiki Instructions](https://github.com/pageauc/pi-timolo/wiki) and [YouTube Videos](https://www.youtube.com/playlist?list=PLLXJw_uJtQLa11A4qjVpn2D2T0pgfaSG0)
+Note: This points to original pi-timolo and some information might not be relavent or wrong for pi-timolo2
 
 ## Requirements
 Requires a [***Raspberry Pi computer***](https://www.raspberrypi.org/documentation/setup/) and a 
 [***RPI camera module installed***](https://www.raspberrypi.org/documentation/usage/camera/).
 Make sure hardware is tested and works. Most [RPI models](https://www.raspberrypi.org/products/) will work OK. 
-A quad core RPI will greatly improve performance due to threading. A recent version of Bullseye or later.
+A quad core RPI will greatly improve performance due to threading. 
+
+A recent version of Raspberry Pi OS. Bullseye, Bookworm or later 32 or 64 bit.
+
 [Raspbian operating system](https://www.raspberrypi.org/downloads/raspbian/) is Recommended.
  
 ## Quick Install or Upgrade
