@@ -1,6 +1,6 @@
 #!/bin/bash
 # Convenient pi-timolo2-install.sh script written by Claude Pageau 1-Jul-2016
-ver="13.0"
+ver="13.1"
 progName=$(basename -- "$0")
 TIMOLO2_DIR='pi-timolo2'  # Default folder install location
 
@@ -215,27 +215,43 @@ fi
 
 echo "
 -----------------------------------------------
-INFO  : $STATUS Complete ver 12.0
+INFO  : $STATUS Complete ver 13.1
 -----------------------------------------------
 Minimal Instructions:
 1 - Run sudo raspi-config Interfacing Options and enable I2C and Pi Camera
+    make sure 
+
 2 - It is suggested you run sudo apt-get update and sudo apt-get upgrade
     Reboot RPI if there are significant Raspbian OS system updates.
-3 - If config.py already exists then latest file is config.py.new
-4 - To Test Run pi-timolo2 execute the following commands in RPI SSH
+
+3 - If config.py already exists then latest file will be config.py.new
+
+4 - If using Bulleye run raspi-config, System Options. Make sure camera is NOT in Legacy mode.
+    test pi-camera. See commands below
+	
+	sudo raspi-config              % Check System Options Bullseye Only
+	libcamera-hello --list-cameras 
+	libcamera-still -o sample.jpg  # you should see file if camera is working OK
+
+5 - You will need to create symlinks to enable supervisorctl operation per below.
+	This will allow proper operation of menubox.ah
+
+    cd ~/pi-timolo2
+    ./timolo.sh install
+    ./webserver.sh install
+	
+6 - To Test Run pi-timolo2 execute the following commands in RPI SSH
     or terminal session. Default is Motion Track On and TimeLapse On
 
     cd ~/pi-timolo2
     ./timolo2.py
 
-5 - To manage pi-timolo2, Run menubox.sh Execute commands below
+7 - To manage pi-timolo2, Run menubox.sh per commands below
 
     cd ~/pi-timolo2
     ./menubox.sh
 
-6	You will need to run timolo.sh install and/or webserver.install to enable supervisorctl operation.
-
-
+  
     For help See https://github.com/pageauc/pi-timolo2/
 
     Good Luck Claude ...
