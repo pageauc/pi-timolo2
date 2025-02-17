@@ -39,7 +39,7 @@ echo "Note: config.py will not be overwritten. Updated settings are in config.py
 timolo2Files=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" "strmpilibcam.py" \
 "webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py" "Readme.md" )
 
-for fname in "${timoloFiles[@]}" ; do
+for fname in "${timolo2Files[@]}" ; do
     wget_output=$(wget -O $fname -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
     if [ $? -ne 0 ]; then
         wget_output=$(wget -O $fname -q https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
