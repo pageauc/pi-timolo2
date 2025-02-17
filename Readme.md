@@ -24,10 +24,12 @@ A recent version of Raspberry Pi OS. Bullseye, Bookworm or later 32 or 64 bit.
 [Raspbian operating system](https://www.raspberrypi.org/downloads/raspbian/) is Recommended.
  
 ## Quick Install or Upgrade
-**IMPORTANT** - It is suggested you do a Raspbian ***sudo apt-get update*** and ***sudo apt-get upgrade***
-before curl install, since it is **No longer** performed by the pi-timolo-install.sh script
+**IMPORTANT** - It is suggested run ***sudo apt-get update*** and ***sudo apt-get upgrade***
+before curl install, since it is **Not** performed by the timolo2-install.sh script
 
-***Step 1*** With mouse left button highlight curl command in code box below. Right click mouse in **highlighted** area and Copy.     
+Internet access is Required. Login to Raspberry Pi via ssh or locally with a terminal session open. In user home folder eg /home/pi 
+
+***Step 1*** With left mouse button press copy icon to Right of curl command code box below. copied will display. 
 ***Step 2*** On RPI putty SSH or terminal session right click, select paste then Enter to download and run script.     
 
     curl -L https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-install.sh | bash
