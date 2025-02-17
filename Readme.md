@@ -1,8 +1,8 @@
 # PI-TIMOLO2 [![Mentioned in Awesome <INSERT LIST NAME>](https://awesome.re/mentioned-badge.svg)](https://github.com/thibmaek/awesome-raspberry-pi)
 ### Raspberry (Pi)camera, (Ti)melapse, (Mo)tion, (Lo)wlight 
 
-## IMPOTANT NOTICE
-17-Feb-2025
+## IMPORTANT NOTICE 17-Feb-2025
+
 pi-timolo2 runs using libcamera and picamera2 python library, Bullseye (libcamera config), Bookworm Raspberry Pi OS and later.
 This release points to original pi-timolo wiki that may not be relavent to pi-timolo2 featues.
 pi-timolo2 uses supervisor to launch timolo2.py or webserver.py in background.  Use timolo2.sh, webserver.sh to manage (see help eg ***./timolo2.sh help***)
