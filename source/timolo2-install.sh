@@ -37,7 +37,7 @@ INFO  : $progName $ver  written by Claude Pageau
 if $is_upgrade ; then
   timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
   "webserver.py" "webserver.sh" \
-  "makevideo.sh" "mvleavelast.sh" "remote-run.sh" )
+  "makevideo.sh" "mvleavelast.sh" )
 
 
   if [ ! -f config.cfg ]; then
@@ -49,7 +49,7 @@ if $is_upgrade ; then
 else   # New Install
   timoloFiles=("config.py" "menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" \
   "webserver.py" "webserver.sh" \
-  "makevideo.sh" "video.conf" "mvleavelast.sh" "remote-run.sh" )
+  "makevideo.sh" "video.conf" "mvleavelast.sh" )
 
 fi
 
