@@ -86,7 +86,6 @@ fi
 chmod +x *py
 chmod -x config*py
 chmod +x *sh
-chmod +x rclone-samples/*sh
 
 echo "copy image-stitching to /usr/local/bin"
 chmod +x image-stitching
@@ -110,9 +109,6 @@ if [ ! -f config.py ] ; then
 fi
 cp config.py config.py.prev   # make copy of previous configuration
 
-if [ ! -f watch-app.sh ] ; then
-    cp watch-app-new.sh watch-app.sh
-fi
 
 # Install plugins if not already installed.  You must delete a plugin file to force reinstall.
 echo "INFO  : $STATUS Check/Install pi-timolo2/plugins    Wait ..."
@@ -161,7 +157,8 @@ for fname in "${rcloneFiles[@]}" ; do
     fi
 done
 chmod +x *sh
-cd ..
+
+cd $TIMOLO2_DIR
 
 rclone_install=true
 if [ -f /usr/bin/rclone ]; then
@@ -286,14 +283,12 @@ IMPORTANT: timolo2.py ver 10.x Adds a Sched StartAt Feature.
     cp config.py.new config.py
     nano config.py
 
-Use nano to Restore Custom Settings from config.py.bak then ctrl-x y to Save and Exit
-For Details See Wiki at
-https://github.com/pageauc/pi-timolo2/wiki/How-to-Schedule-Motion,-Timelapse-or-VideoRepeat"
-fi
+    Use nano to Restore Custom Settings from config.py.bak then ctrl-x y to Save and Exit
+    For Details See Wiki at
+    https://github.com/pageauc/pi-timolo2/wiki/How-to-Schedule-Motion,-Timelapse-or-VideoRepeat"
 
-echo "
-For Full Instructions See Wiki at https://github.com/pageauc/pi-timolo2/wiki
+    For help See Wiki at https://github.com/pageauc/pi-timolo2/wiki
 
-Good Luck Claude ...
-Bye"
+    Good Luck Claude ...
+    Bye"
 

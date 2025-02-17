@@ -1,4 +1,4 @@
-# PI-TIMOLO rclone-samples
+# PI-TIMOLO2 rclone-samples
 
 ## Introduction
 This is a collection of sample rclone scripts.  The logic is
@@ -10,10 +10,10 @@ You can review samples and copy a script to a unique name or edit one of the sam
 Change required variables per comments. You should test script before putting
 into production as a crontab entry.
 
-    cd ~/pi-timolo.py
+    cd ~/pi-timolo2.py
     cp rclone-samples/rclone-master.sh ./rclone-test.sh
     
-This will copy a copy of the master file into the pi-timolo folder
+This will make a copy of the master file into the pi-timolo2 folder
 To edit    
     
     nano rclone-test.sh
