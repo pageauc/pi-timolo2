@@ -18,6 +18,7 @@ else
   STATUS="New Install"
   mkdir -p $TIMOLO2_DIR
   mkdir -p $TIMOLO2_DIR/media
+  mkdir -p $TIMOLO2_DIR/supervisor
   echo "INFO  : $TIMOLO2_DIR Folder Created"
 fi
 
