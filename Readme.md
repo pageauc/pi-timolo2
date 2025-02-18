@@ -22,8 +22,6 @@ Make sure hardware is tested and works. Most [RPI models](https://www.raspberryp
 A quad core RPI will greatly improve performance due to threading. 
 
 A recent version of Raspberry Pi OS. Bullseye, Bookworm or later 32 or 64 bit.
-
-[Raspbian operating system](https://www.raspberrypi.org/downloads/raspbian/) is Recommended.
  
 ## Quick Install or Upgrade
 **IMPORTANT** - It is suggested run ***sudo apt-get update*** and ***sudo apt-get upgrade***
