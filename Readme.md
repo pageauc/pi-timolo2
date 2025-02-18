@@ -29,7 +29,7 @@ before curl install, since it is **Not** performed by the timolo2-install.sh scr
 
 Internet access is Required. Login to Raspberry Pi via ssh or locally with a terminal session open. In user home folder eg /home/pi 
 
-*#### Step 1
+#### Step 1
 Press GitHub copy icon on right side of code box below. copied will be displayed                
 
     curl -L https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-install.sh | bash
