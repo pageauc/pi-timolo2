@@ -47,6 +47,10 @@ done
 
 wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
 wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
+
+wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
+wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
+
 wget -q --show-progress -nc https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
 
 if [ -f config.py ]; then     # check if local file exists.
