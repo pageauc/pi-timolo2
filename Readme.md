@@ -21,7 +21,8 @@ Requires a [***Raspberry Pi computer***](https://www.raspberrypi.org/documentati
 Make sure hardware is tested and works. Most [RPI models](https://www.raspberrypi.org/products/) will work OK. 
 A quad core RPI will greatly improve performance due to threading. 
 
-A recent version of Raspberry Pi OS. Bullseye, Bookworm or later 32 or 64 bit.
+A recent version of Raspberry Pi OS. Bullseye, Bookworm or later 32 or 64 bit. Optional pantilt eg Pimoroni pantilt Hat.
+This supports pano stitching mode, pantilt sequence on motion or timelapse.
  
 ## Quick Install or Upgrade
 **IMPORTANT** - It is suggested run ***sudo apt-get update*** and ***sudo apt-get upgrade***
