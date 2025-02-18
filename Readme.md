@@ -43,36 +43,33 @@ An upgrade will not overwrite configuration files.
 
 ## Test Install
 
-Minimal Instructions:
-1 - Run sudo raspi-config Interfacing Options and enable I2C and Pi Camera
-    make sure 
-
-2 - It is suggested you run sudo apt-get update and sudo apt-get upgrade
+#### Minimal Instructions:
+1 - It is suggested you run ***sudo apt-get update*** and ***sudo apt-get upgrade***
     Reboot RPI if there are significant Raspbian OS system updates.
 
-3 - If config.py already exists then latest file will be config.py.new
+2 - If config.py already exists then latest file will be config.py.new
 
-4 - If using Bulleye run sudo raspi-config, Interface Options, 3. 
+3 - If using Bulleye run sudo raspi-config, Interface Options, 3. 
     Make sure camera is NOT in Legacy mode. Test camera. See commands below
 	
 	sudo raspi-config              % Check System Options Bullseye Only
 	libcamera-hello --list-cameras 
 	libcamera-still -o sample.jpg  # you should see file if camera is working OK
 
-5 - You will need to create symlinks to enable supervisorctl operation per below.
+4 - You will need to create symlinks to enable supervisorctl operation per below.
 	This will allow proper operation of menubox.ah
 
     cd ~/pi-timolo2
     ./timolo.sh install
     ./webserver.sh install
 	
-6 - To Test Run pi-timolo2 execute the following commands in RPI SSH
+5 - To Test Run pi-timolo2 execute the following commands in RPI SSH
     or terminal session. Default is Motion Track On and TimeLapse On
 
     cd ~/pi-timolo2
     ./timolo2.py
 
-7 - To manage pi-timolo2, Run menubox.sh per commands below
+6 - To manage pi-timolo2, Run menubox.sh per commands below
 
     cd ~/pi-timolo2
     ./menubox.sh
