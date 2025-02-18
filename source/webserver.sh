@@ -42,7 +42,6 @@ elif [ "$1" = "install" ]; then
 	sleep 4
     sudo supervisorctl update
 
-
 elif [ "$1" = "uninstall" ]; then
     sudo supervisorctl stop $service_name
     sleep 5
@@ -75,6 +74,6 @@ fi
 echo "Wait ...
 "
 sleep 5
-sudo supervisorctl status $service_name
+sudo supervisorctl status all
 echo "Done
 "

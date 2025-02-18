@@ -78,6 +78,6 @@ Usage: ./$(basename "$0") [Option]
 fi
 echo "Wait ...
 "
-sudo supervisorctl status $service_name
+sudo supervisorctl status all
 echo "Done
 "
