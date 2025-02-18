@@ -50,6 +50,7 @@ wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi
 
 wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
 wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
+wget -O supervisor/Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/Readme.md
 
 wget -q --show-progress -nc https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
 
