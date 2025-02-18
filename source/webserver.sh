@@ -37,6 +37,12 @@ elif [ "$1" = "install" ]; then
     # Run this option to initialize supervisor.service
     echo "install: sudo ln -s $conf_file_dir /etc/supervisor/conf.d"
     sudo ln -s $conf_file_dir/$conf_file_name /etc/supervisor/conf.d
+    ls -al /etc/supervisor/conf.d
+	sudo supervisorctl reread
+	sleep 4
+    sudo supervisorctl update
+
+
 elif [ "$1" = "uninstall" ]; then
     sudo supervisorctl stop $service_name
     sleep 5
