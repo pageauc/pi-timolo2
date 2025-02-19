@@ -1082,14 +1082,14 @@ def writeTextToImage(imagename, datetoprint, currentDayMode):
     directly on top or bottom of images.
     """
     if SHOW_TEXT_WHITE:
-        FOREGROUND = (255, 255, 255)  # rgb settings for white text foreground
+        text_foreground_colour = (255, 255, 255)  # rgb settings for white text text_foreground_colour
         textColour = "White"
     else:
-        FOREGROUND = (0, 0, 0)  # rgb settings for black text foreground
+        text_foreground_colour = (0, 0, 0)  # rgb settings for black text text_foreground_colour
         textColour = "Black"
         if SHOW_TEXT_WHITE_NIGHT and (not currentDayMode):
-            # rgb settings for black text foreground
-            FOREGROUND = (255, 255, 255)
+            # rgb settings for black text text_foreground_colour
+            text_foreground_colour = (255, 255, 255)
             textColour = "White"
     img = cv2.imread(imagename)
     # This is grayscale image so channels is not avail or used
@@ -1118,17 +1118,17 @@ def writeTextToImage(imagename, datetoprint, currentDayMode):
         pass
     draw = ImageDraw.Draw(img)
     # draw.text((x, y),"Sample Text",(r,g,b))
-    draw.text((x, y), text, FOREGROUND, font=font)
+    draw.text((x, y), text, text_foreground_colour, font=font)
     if IMAGE_FORMAT.lower == ".jpg" or IMAGE_FORMAT.lower == ".jpeg":
         img.save(imagename, quality="keep")
     else:
         img.save(imagename)
-    logging.info("Added %s Text [ %s ]", textColour, datetoprint)
+    logging.info("Added {textColour} Text [ {datetoprint} ]")
     try:
         metadata.write()  # Write previously saved exif data to image file
     except:
         logging.warning("Image EXIF Data Not Transferred.")
-    logging.info("Saved %s", imagename)
+    logging.info(f"Saved {imagename}")
 
 
 # ------------------------------------------------------------------------------
