@@ -365,12 +365,12 @@ if PANTILT_ON:
 
 
 # Check for user_motion_code.py file to import and error out if not found.
-userMotionFilePath = os.path.join(base_dir, "user_motion_code.py")
+user_motion_filepath = os.path.join(base_dir, "user_motion_code.py")
 
-if not os.path.isfile(userMotionFilePath):
+if not os.path.isfile(user_motion_filepath):
     print(
         "WARN  : %s File Not Found. Cannot Import user_motion_code functions."
-        % userMotionFilePath
+        % user_motion_filepath
     )
     warn_on = True
 else:
@@ -531,7 +531,9 @@ if DARK_GAIN > 16:
 def piCamFound():
     try:
         # Use libcamera-hello to check if the camera is detected
-        result = subprocess.run(['libcamera-hello', '--list-cameras'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(['libcamera-hello', '--list-cameras'],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, text=True)
         if result.returncode == 0:
             sensor = None
             for line in result.stdout.splitlines():
@@ -652,9 +654,9 @@ def CheckJpgQuality(im_jpg_quality):
 
 
 # ------------------------------------------------------------------------------
-def shut2sec(shutspeed):
+def shut2sec(shut_speed):
     """Convert camera shutter speed setting to string"""
-    shutspeedSec = shutspeed / float(SECONDS2MICRO)
+    shutspeedSec = shut_speed / float(SECONDS2MICRO)
     shutstring = str("%.4f") % (shutspeedSec)
     return shutstring
 
@@ -710,37 +712,37 @@ def getLastSubdir(dir_name):
 
 
 # ------------------------------------------------------------------------------
-def createSubdir(dir_name, prefix):
+def createSubdir(dir_name, filename_prefix):
     """
     Create a subdirectory in dir_name with
-    unique name based on prefix and date time
+    unique name based on filename_prefix and date time
     """
-    now = datetime.datetime.now()
+    right_now = datetime.datetime.now()
     # Specify folder naming
     subDirName = "%s%d-%02d%02d-%02d%02d" % (
-        prefix,
-        now.year,
-        now.month,
-        now.day,
-        now.hour,
-        now.minute,
+        filename_prefix,
+        right_now.year,
+        right_now.month,
+        right_now.day,
+        right_now.hour,
+        right_now.minute,
     )
-    subDirPath = os.path.join(dir_name, subDirName)
-    if not os.path.isdir(subDirPath):
+    sub_dir_path = os.path.join(dir_name, subDirName)
+    if not os.path.isdir(sub_dir_path):
         try:
-            os.makedirs(subDirPath)
+            os.makedirs(sub_dir_path)
         except OSError as err:
             logging.error(
                 "Cannot Create Directory %s - %s, using default location.",
-                subDirPath,
+                sub_dir_path,
                 err,
             )
-            subDirPath = dir_name
+            sub_dir_path = dir_name
         else:
-            logging.info("Created %s", subDirPath)
+            logging.info("Created %s", sub_dir_path)
     else:
-        subDirPath = dir_name
-    return subDirPath
+        sub_dir_path = dir_name
+    return sub_dir_path
 
 
 # ------------------------------------------------------------------------------
@@ -757,54 +759,54 @@ def subDirCheckMaxFiles(dir_name, files_max):
 
 
 # ------------------------------------------------------------------------------
-def subDirCheckMaxHrs(dir_name, hrsMax, prefix):
+def subDirCheckMaxHrs(dir_name, hrs_max, filename_prefix):
     """
     Note to self need to add error checking
     extract the date-time from the dir_name name
     """
     dirName = os.path.split(dir_name)[1]  # split dir path and keep dirName
-    # remove prefix from dirName so just date-time left
-    dirStr = dirName.replace(prefix, "")
+    # remove filename_prefix from dirName so just date-time left
+    dirStr = dirName.replace(filename_prefix, "")
     # convert string to datetime
     dirDate = datetime.datetime.strptime(dirStr, "%Y-%m%d-%H%M")
     right_now = datetime.datetime.now()  # get datetime now
     diff = right_now - dirDate  # get time difference between dates
     days, seconds = diff.days, diff.seconds
     dirAgeHours = float(days * 24 + (seconds / 3600.0))  # convert to hours
-    if dirAgeHours > hrsMax:  # See if hours are exceeded
+    if dirAgeHours > hrs_max:  # See if hours are exceeded
         makeNewDir = True
-        logging.info("MaxHrs %i Exceeds %i for %s", dirAgeHours, hrsMax, dir_name)
+        logging.info("MaxHrs %i Exceeds %i for %s", dirAgeHours, hrs_max, dir_name)
     else:
         makeNewDir = False
     return makeNewDir
 
 
 # ------------------------------------------------------------------------------
-def subDirChecks(maxHours, maxFiles, dir_name, prefix):
+def subDirChecks(max_hours, max_files, dir_name, filename_prefix):
     """Check if motion SubDir needs to be created"""
-    if maxHours < 1 and maxFiles < 1:  # No Checks required
+    if max_hours < 1 and max_files < 1:  # No Checks required
         # logging.info('No sub-folders Required in %s', dir_name)
-        subDirPath = dir_name
+        sub_dir_path = dir_name
     else:
-        subDirPath = getLastSubdir(dir_name)
-        if subDirPath == dir_name:  # No subDir Found
+        sub_dir_path = getLastSubdir(dir_name)
+        if sub_dir_path == dir_name:  # No subDir Found
             logging.info("No sub folders Found in %s", dir_name)
-            subDirPath = createSubdir(dir_name, prefix)
+            sub_dir_path = createSubdir(dir_name, filename_prefix)
         # Check MaxHours Folder Age Only
-        elif maxHours > 0 and maxFiles < 1:
-            if subDirCheckMaxHrs(subDirPath, maxHours, prefix):
-                subDirPath = createSubdir(dir_name, prefix)
-        elif maxHours < 1 and maxFiles > 0:  # Check Max Files Only
-            if subDirCheckMaxFiles(subDirPath, maxFiles):
-                subDirPath = createSubdir(dir_name, prefix)
-        elif maxHours > 0 and maxFiles > 0:  # Check both Max Files and Age
-            if subDirCheckMaxHrs(subDirPath, maxHours, prefix):
-                if subDirCheckMaxFiles(subDirPath, maxFiles):
-                    subDirPath = createSubdir(dir_name, prefix)
+        elif max_hours > 0 and max_files < 1:
+            if subDirCheckMaxHrs(sub_dir_path, max_hours, filename_prefix):
+                sub_dir_path = createSubdir(dir_name, filename_prefix)
+        elif max_hours < 1 and max_files > 0:  # Check Max Files Only
+            if subDirCheckMaxFiles(sub_dir_path, max_files):
+                sub_dir_path = createSubdir(dir_name, filename_prefix)
+        elif max_hours > 0 and max_files > 0:  # Check both Max Files and Age
+            if subDirCheckMaxHrs(sub_dir_path, max_hours, filename_prefix):
+                if subDirCheckMaxFiles(sub_dir_path, max_files):
+                    sub_dir_path = createSubdir(dir_name, filename_prefix)
                 else:
-                    logging.info("MaxFiles Not Exceeded in %s", subDirPath)
-    os.path.abspath(subDirPath)
-    return subDirPath
+                    logging.info("MaxFiles Not Exceeded in %s", sub_dir_path)
+    os.path.abspath(sub_dir_path)
+    return sub_dir_path
 
 
 # ------------------------------------------------------------------------------
@@ -855,18 +857,18 @@ def checkMediaPaths():
 
 
 # ------------------------------------------------------------------------------
-def deleteOldFiles(maxFiles, dirPath, prefix):
+def deleteOldFiles(max_files, dirPath, filename_prefix):
     """
-    Delete Oldest files gt or eq to maxfiles that match file_name prefix
+    Delete Oldest files gt or eq to maxfiles that match file_name filename_prefix
     """
     try:
         file_list = sorted(
-            glob.glob(os.path.join(dirPath, prefix + "*")), key=os.path.getmtime
+            glob.glob(os.path.join(dirPath, filename_prefix + "*")), key=os.path.getmtime
         )
     except OSError as err:
         logging.error("Problem Reading Directory %s - %s", dirPath, err)
     else:
-        while len(file_list) >= maxFiles:
+        while len(file_list) >= max_files:
             oldest = file_list[0]
             oldestFile = oldest
             try:  # Remove oldest file in recent folder
@@ -917,14 +919,14 @@ def makeRelSymlink(sourcefile_namePath, symDestDir):
 
 
 # ------------------------------------------------------------------------------
-def saveRecent(recentMax, recentDir, filepath, prefix):
+def saveRecent(recentMax, recentDir, filepath, filename_prefix):
     """
     Create a symlink file in recent folder (timelapse or motion subfolder)
     Delete Oldest symlink file if recentMax exceeded.
     """
     show_log = False
     if recentMax > 0:
-        deleteOldFiles(recentMax, os.path.abspath(recentDir), prefix)
+        deleteOldFiles(recentMax, os.path.abspath(recentDir), filename_prefix)
         makeRelSymlink(filepath, recentDir)
 
 
@@ -1207,17 +1209,17 @@ def postImageProcessing(
 
 
 # ------------------------------------------------------------------------------
-def getVideoName(path, prefix, numberon, counter):
+def getVideoName(path, filename_prefix, numberon, counter):
     """build image file names by number sequence or date/time"""
     if numberon:
         if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
-            file_name = os.path.join(path, prefix + str(counter) + ".h264")
+            file_name = os.path.join(path, filename_prefix + str(counter) + ".h264")
     else:
         if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
             right_now = datetime.datetime.now()
             file_name = "%s/%s%04d%02d%02d-%02d%02d%02d.h264" % (
                 path,
-                prefix,
+                filename_prefix,
                 right_now.year,
                 right_now.month,
                 right_now.day,
@@ -1229,15 +1231,15 @@ def getVideoName(path, prefix, numberon, counter):
 
 
 # ------------------------------------------------------------------------------
-def getImagefile_name(path, prefix, numberon, counter):
+def getImagefile_name(path, filename_prefix, numberon, counter):
     """build image file names by number sequence or date/time"""
     if numberon:
-        file_name = os.path.join(path, prefix + str(counter) + IMAGE_FORMAT)
+        file_name = os.path.join(path, filename_prefix + str(counter) + IMAGE_FORMAT)
     else:
         right_now = datetime.datetime.now()
         file_name = "%s/%s%04d%02d%02d-%02d%02d%02d%s" % (
             path,
-            prefix,
+            filename_prefix,
             right_now.year,
             right_now.month,
             right_now.day,
@@ -1361,7 +1363,7 @@ def takeImage(file_path, im_data):
         time.sleep(4) # Allow time for camera to warm up
     else:
         logging.info(f'Low Light {px_ave}/{DARK_START_PXAVE} px_ave')
-        time.sleep((exposure_microsec / SECONDS2MICRO) + 1 ) # Allow time for camera to adjust for long exposure
+        time.sleep(analogue_gain) # Allow time for camera to adjust for long exposure
 
     logging.info(f"ImageSize=({image_width}x{image_height}) vflip={IMAGE_VFLIP} hflip={IMAGE_HFLIP}")
     logging.info(f"px_ave={px_ave}, Exposure={exposure_microsec} microsec, Gain={analogue_gain} Auto is 0")
@@ -1471,46 +1473,46 @@ def timeToSleep(currentday_mode):
 
 
 # ------------------------------------------------------------------------------
-def getSchedStart(dateToCheck):
+def getSchedStart(date_to_check):
     """
     This function will try to extract a valid date/time from a
     date time formatted string variable
     If date/time is past then try to extract time
     and schedule for current date at extracted time
     """
-    goodDateTime = datetime.datetime.now()
-    if len(dateToCheck) > 1:  # Check if TIMELAPSE_START_AT is set
+    good_datetime = datetime.datetime.now()
+    if len(date_to_check) > 1:  # Check if TIMELAPSE_START_AT is set
         try:
             # parse and convert string to date/time or return error
-            goodDateTime = parse(dateToCheck)
+            good_datetime = parse(date_to_check)
         except:
             # Is there a colon indicating possible time format exists
-            if ":" in dateToCheck:
-                timeTry = dateToCheck[dateToCheck.find(":") - 2 :]
+            if ":" in date_to_check:
+                time_try = date_to_check[date_to_check.find(":") - 2 :]
                 # Try to extract time only from string
                 try:
                     # See if a valid time is found returns with current day
-                    goodDateTime = parse(timeTry)
+                    good_datetime = parse(time_try)
                 except:
-                    logging.error("Bad Date and/or Time Format %s", dateToCheck)
+                    logging.error("Bad Date and/or Time Format %s", date_to_check)
                     logging.error(
                         "Use a Valid Date and/or Time "
                         'Format Eg "DD-MMM-YYYY HH:MM:SS"'
                     )
-                    goodDateTime = datetime.datetime.now()
-                    logging.warning("Resetting date/time to Now: %s", goodDateTime)
+                    good_datetime = datetime.datetime.now()
+                    logging.warning(f"Resetting date/time to Now: {good_datetime}")
         # Check if date/time is past
-        if goodDateTime < datetime.datetime.now():
-            if ":" in dateToCheck:  # Check if there is a time component
+        if good_datetime < datetime.datetime.now():
+            if ":" in date_to_check:  # Check if there is a time component
                 # Extract possible time component
-                timeTry = dateToCheck[dateToCheck.find(":") - 2 :]
+                time_try = date_to_check[date_to_check.find(":") - 2 :]
                 try:
                     # parse for valid time
                     # returns current day with parsed time
-                    goodDateTime = parse(timeTry)
+                    good_datetime = parse(time_try)
                 except:
                     pass  # Do Nothing
-    return goodDateTime
+    return good_datetime
 
 
 # ------------------------------------------------------------------------------
@@ -1543,7 +1545,7 @@ def checkTimer(timer_start, timer_sec):
 
 
 # ------------------------------------------------------------------------------
-def takeMiniTimelapse(mo_path, prefix, NumOn, motionNumCount, currentday_mode, NumPath, im_data):
+def takeMiniTimelapse(mo_path, filename_prefix, num_on, motion_num_count, currentday_mode, im_data):
     """
     Take a motion tracking activated mini timelapse sequence
     using yield if motion triggered
@@ -1553,48 +1555,45 @@ def takeMiniTimelapse(mo_path, prefix, NumOn, motionNumCount, currentday_mode, N
         MOTION_TRACK_MINI_TL_SEQ_SEC,
         MOTION_TRACK_MINI_TL_TIMER_SEC,
     )
-    checkTimeLapseTimer = datetime.datetime.now()
-    keepTakingImages = True
-    imgCnt = 1
-    motionNumCount = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
-    file_name = getImagefile_name(mo_path, prefix, NumOn, motionNumCount)
-    while keepTakingImages:
-        logging.info(f"{imgCnt}")
+    check_timelapse_timer = datetime.datetime.now()
+    keep_taking_images = True
+    image_count = 1
+    motion_num_count = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
+    file_name = getImagefile_name(mo_path, filename_prefix, num_on, motion_num_count)
+    while keep_taking_images:
+        logging.info(f"{image_count}")
         takeImage(file_name, im_data)
-        motionNumCount += 1
-        writeCounter(motionNumCount, NUM_PATH_MOTION)
-        file_name = getImagefile_name(mo_path, prefix, NumOn, motionNumCount)
+        motion_num_count += 1
+        writeCounter(motion_num_count, NUM_PATH_MOTION)
+        file_name = getImagefile_name(mo_path, filename_prefix, num_on, motion_num_count)
         right_now = datetime.datetime.now()
-        timelapseDiff = (right_now - checkTimeLapseTimer).total_seconds()
-        if timelapseDiff > MOTION_TRACK_MINI_TL_SEQ_SEC + 1:
-            keepTakingImages = False
+        timelapse_diff = (right_now - check_timelapse_timer).total_seconds()
+        if timelapse_diff > MOTION_TRACK_MINI_TL_SEQ_SEC + 1:
+            keep_taking_images = False
         else:
-            imgCnt += 1
-            saveRecent(MOTION_RECENT_MAX, MOTION_RECENT_DIR, file_name, prefix)
+            image_count += 1
+            saveRecent(MOTION_RECENT_MAX, MOTION_RECENT_DIR, file_name, filename_prefix)
             time.sleep(MOTION_TRACK_MINI_TL_TIMER_SEC)
-    logging.info("END - Total %i Images in %i sec",
-                 imgCnt,
-                 timelapseDiff
-                )
-    print("")
+    logging.info(f"END - Total {image_count} Images in {timelapse_diff} sec\n")
+
 
 
 # ------------------------------------------------------------------------------
-def takeVideo(file_name, duration, vidW=1280, vidH=720, fps=25):
+def takeVideo(file_name, vid_seconds, vid_W=1280, vid_H=720, vid_fps=25):
     """Take a short motion video if required"""
-    logging.info("Start: Size %ix%i for %i sec at %i fps", vidW, vidH, duration, fps)
+    logging.info("Start: Size %ix%i for %i sec at %i fps", vid_W, vid_H, vid_seconds, vid_fps)
     if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
         file_path_mp4 = os.path.join(os.path.dirname(file_name),
                                    os.path.splitext(os.path.basename(file_name))[0] + ".mp4")
         picam2 = Picamera2()
-        picam2.configure(picam2.create_video_configuration({"size": (vidW, vidH)},
+        picam2.configure(picam2.create_video_configuration({"size": (vid_W, vid_H)},
                                                            transform=Transform(vflip=IMAGE_VFLIP,
                                                                                hflip=IMAGE_HFLIP)))
-        picam2.set_controls({"FrameRate": fps})
+        picam2.set_controls({"FrameRate": vid_fps})
         encoder = H264Encoder(10000000)
         output = FfmpegOutput(file_path_mp4)
         picam2.start_recording(encoder, output)
-        time.sleep(duration)
+        time.sleep(vid_seconds)
         picam2.stop_recording()
         picam2.close()
 
@@ -1942,8 +1941,8 @@ def timolo():
     pan_x, tilt_y = PANTILT_SEQ_STOPS[cam_tl_pos]
     dotCount = 0
     checkMediaPaths()
-    timelapseNumCount = 0
-    motionNumCount = 0
+    timelapse_num_count = 0
+    motion_num_count = 0
 
     tlstr = ""  # Used to display if timelapse is selected
     mostr = ""  # Used to display if motion is selected
@@ -1978,8 +1977,8 @@ def timolo():
             TIMELAPSE_PREFIX,
         )
         if TIMELAPSE_NUM_ON:
-            timelapseNumCount = getCurrentCount(NUM_PATH_TIMELAPSE, TIMELAPSE_NUM_START)
-            tlCnt = str(timelapseNumCount)
+            timelapse_num_count = getCurrentCount(NUM_PATH_TIMELAPSE, TIMELAPSE_NUM_START)
+            tlCnt = str(timelapse_num_count)
     else:
         logging.warning("Timelapse is Surpressed per TIMELAPSE_ON=%s", TIMELAPSE_ON)
         stop_timelapse = True
@@ -2006,8 +2005,8 @@ def timolo():
             MOTION_SUBDIR_MAX_HOURS, MOTION_SUBDIR_MAX_FILES, MOTION_DIR, MOTION_PREFIX
         )
         if MOTION_NUM_ON:
-            motionNumCount = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
-            moCnt = str(motionNumCount)
+            motion_num_count = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
+            moCnt = str(motion_num_count)
         trackTimeout = time.time()
         trackTimer = TRACK_TIMEOUT
         startPos = []
@@ -2069,12 +2068,12 @@ def timolo():
         motionFound = False
         if (MOTION_TRACK_ON
             and (not MOTION_NUM_RECYCLE_ON)
-            and (motionNumCount > MOTION_NUM_START + MOTION_NUM_MAX)
+            and (motion_num_count > MOTION_NUM_START + MOTION_NUM_MAX)
             and (not stopMotion)):
             logging.warning(
-                "MOTION_NUM_RECYCLE_ON=%s and motionNumCount %i Exceeds %i",
+                "MOTION_NUM_RECYCLE_ON=%s and motion_num_count %i Exceeds %i",
                 MOTION_NUM_RECYCLE_ON,
-                motionNumCount,
+                motion_num_count,
                 MOTION_NUM_START + MOTION_NUM_MAX,
             )
             logging.warning("Suppressing Further Motion Tracking")
@@ -2206,13 +2205,13 @@ def timolo():
                     and TIMELAPSE_NUM_ON
                     and (not TIMELAPSE_NUM_RECYCLE_ON)
                 ):
-                    if TIMELAPSE_NUM_MAX > 0 and timelapseNumCount > (
+                    if TIMELAPSE_NUM_MAX > 0 and timelapse_num_count > (
                         TIMELAPSE_NUM_START + TIMELAPSE_NUM_MAX
                     ):
                         logging.warning(
                             "TIMELAPSE_NUM_RECYCLE_ON=%s and Counter=%i Exceeds %i",
                             TIMELAPSE_NUM_RECYCLE_ON,
-                            timelapseNumCount,
+                            timelapse_num_count,
                             TIMELAPSE_NUM_START + TIMELAPSE_NUM_MAX,
                         )
                         logging.warning("Suppressing Further Timelapse Images")
@@ -2275,7 +2274,7 @@ def timolo():
                             )
                     tl_prefix = TIMELAPSE_PREFIX + IMAGE_NAME_PREFIX
                     file_name = getImagefile_name(
-                        tlPath, tl_prefix, TIMELAPSE_NUM_ON, timelapseNumCount
+                        tlPath, tl_prefix, TIMELAPSE_NUM_ON, timelapse_num_count
                     )
 
                     if MOTION_TRACK_ON:
@@ -2284,11 +2283,11 @@ def timolo():
                         time.sleep(STREAM_STOP_SEC)
                     # Time to take a Day or Night Time Lapse Image
                     takeImage(file_name, image2)
-                    timelapseNumCount = postImageProcessing(
+                    timelapse_num_count = postImageProcessing(
                         TIMELAPSE_NUM_ON,
                         TIMELAPSE_NUM_START,
                         TIMELAPSE_NUM_MAX,
-                        timelapseNumCount,
+                        timelapse_num_count,
                         TIMELAPSE_NUM_RECYCLE_ON,
                         NUM_PATH_TIMELAPSE,
                         file_name,
@@ -2436,7 +2435,7 @@ def timolo():
                 if motionFound or motion_force_start:
                     motion_prefix = MOTION_PREFIX + IMAGE_NAME_PREFIX
                     file_name = getImagefile_name(
-                        mo_path, motion_prefix, MOTION_NUM_ON, motionNumCount
+                        mo_path, motion_prefix, MOTION_NUM_ON, motion_num_count
                     )
                     vs.stop()
                     time.sleep(STREAM_STOP_SEC)
@@ -2444,11 +2443,11 @@ def timolo():
                     # Save stream image frame to capture movement quickly
                     if MOTION_TRACK_QUICK_PIC_ON:
                         takeMotionQuickImage(image2, file_name)
-                        motionNumCount = postImageProcessing(
+                        motion_num_count = postImageProcessing(
                             MOTION_NUM_ON,
                             MOTION_NUM_START,
                             MOTION_NUM_MAX,
-                            motionNumCount,
+                            motion_num_count,
                             MOTION_NUM_RECYCLE_ON,
                             NUM_PATH_MOTION,
                             file_name,
@@ -2466,21 +2465,20 @@ def timolo():
                             mo_path,
                             motion_prefix,
                             MOTION_NUM_ON,
-                            motionNumCount,
+                            motion_num_count,
                             day_mode,
-                            NUM_PATH_MOTION,
                             image2)
 
                     # Move camera pantilt through specified positions and take images
                     elif (MOTION_TRACK_ON and PANTILT_ON and MOTION_TRACK_PANTILT_SEQ_ON):
-                        motionNumCount = takePantiltSequence(file_name, day_mode,
-                                                             motionNumCount,
-                                                             NUM_PATH_MOTION,
-                                                             image2)
+                        motion_num_count = takePantiltSequence(file_name, day_mode,
+                                                               motion_num_count,
+                                                               NUM_PATH_MOTION,
+                                                               image2)
                         pantiltGoHome()
                     elif MOTION_VIDEO_ON:
                         file_name = getVideoName(
-                            MOTION_PATH, motion_prefix, MOTION_NUM_ON, motionNumCount
+                            MOTION_PATH, motion_prefix, MOTION_NUM_ON, motion_num_count
                         )
                         takeVideo(
                             file_name,
@@ -2490,15 +2488,15 @@ def timolo():
                             MOTION_VIDEO_FPS,
                         )
                         if MOTION_NUM_ON:
-                            motionNumCount += 1
-                            writeCounter(motionNumCount, NUM_PATH_MOTION)
+                            motion_num_count += 1
+                            writeCounter(motion_num_count, NUM_PATH_MOTION)
                     else:
                         takeImage(file_name, image2)
-                        motionNumCount = postImageProcessing(
+                        motion_num_count = postImageProcessing(
                             MOTION_NUM_ON,
                             MOTION_NUM_START,
                             MOTION_NUM_MAX,
-                            motionNumCount,
+                            motion_num_count,
                             MOTION_NUM_RECYCLE_ON,
                             NUM_PATH_MOTION,
                             file_name,
@@ -2574,7 +2572,7 @@ def timolo():
                     except ValueError:
                         logging.error(
                             "Problem running userMotionCode function from File %s",
-                            userMotionFilePath,
+                            user_motion_filepath,
                         )
 
 
