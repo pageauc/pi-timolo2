@@ -127,7 +127,9 @@ default_settings = {
     "SHOW_TEXT_BOTTOM": True,
     "SHOW_TEXT_WHITE": True,
     "SHOW_TEXT_WHITE_NIGHT": True,
-    "DARK_GAIN":6,
+    "DARK_MAX_EXP_SEC": 6.0,   # picamera V1 default is 6.0 sec. V2 is 10 Sec
+    "DARK_START_PXAVE": 32,    # pxAve transition point between dark and light.
+    "DARK_GAIN": 6,
     "TIMELAPSE_ON": True,
     "TIMELAPSE_DIR": "media/timelapse",
     "TIMELAPSE_PREFIX": "tl-",
@@ -1360,10 +1362,10 @@ def takeImage(filepath, im_data):
 
     # Allow some time for the camera to adjust to the light conditions
     if analogue_gain < 1:  # set for daylight. Auto is 0
-        time.sleep(4) # Allow time for camera warm up
+        time.sleep(4) # Allow time for camera to warm up
     else:
         logging.info(f'Low Light {pxAve}/{DARK_START_PXAVE} pxAve')
-        time.sleep(DARK_GAIN) # Allow time for camera to adjust for long exposure
+        time.sleep((exposure_microsec / SECONDS2MICRO) + 1 )    # Allow time for camera to adjust for long exposure
 
     logging.info(f"ImageSize=({image_width}x{image_height}) vflip={IMAGE_VFLIP} hflip={IMAGE_HFLIP}")
     logging.info(f"pxAve={pxAve}, Exposure={exposure_microsec} microsec, Gain={analogue_gain} Auto is 0")
