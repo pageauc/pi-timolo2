@@ -3,7 +3,7 @@
 # Updated - 15-Feb-2025
 # Done by - Claude Pageau
 
-CONFIG_TITLE = "pi-timolo2 ver 13.0 Default Settings"
+CONFIG_TITLE = "pi-timolo2 ver 13.03 Custom Settings"
 CONFIG_FILENAME  = "config.py"
 CONFIG_VERSION = 13.0  # Version of this file used for compatiblity checking
 
