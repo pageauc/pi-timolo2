@@ -1,26 +1,26 @@
 #!/bin/bash
-ver="5.6"
+ver="5.7"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  # get cur dir of this script
 progName=$(basename -- "$0")
 cd $DIR
 echo "INFO  : $progName $ver  written by Claude Pageau"
 
-# Note makevideo.sh variables are in video.conf
+# Note makevideo.sh variables are in makevideo.conf
 
-if [ -f video.conf ] ; then
-   source $DIR/video.conf
+if [ -f makevideo.conf ] ; then
+   source $DIR/makevideo.conf
 else
-   echo "INFO  : Attempting to download video.conf from GitHub"
+   echo "INFO  : Attempting to download makevideo.conf from GitHub"
    echo "INFO  : Please Wait ...."
-   wget https://raw.github.com/pageauc/pi-timolo/master/source/video.conf
+   wget https://raw.github.com/pageauc/pi-timolo2/master/source/makevideo.conf
 
-   if [ -f video.conf ] ; then
-      source $DIR/video.conf
+   if [ -f makevideo.conf ] ; then
+      source $DIR/makevideo.conf
    else
-      echo "ERROR : $DIR/video.conf File Not Found."
+      echo "ERROR : $DIR/makevideo.conf File Not Found."
       echo "        Could Not Import $progName variables"
       echo "        Please Investigate or Download file from GitHub Repo"
-      echo "        https://github.com/pageauc/pi-timolo"
+      echo "        https://github.com/pageauc/master/sources/pi-timolo2"
       exit 1
    fi
 fi

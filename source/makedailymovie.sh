@@ -10,7 +10,7 @@ echo "INFO  : $progName $ver  written by Claude Pageau"
 #
 # sudo apt-get install libav-tools
 #
-# Mounting a network share to /home/pi/pi-timolo/mnt folder
+# Mounting a network share to /home/pi/pi-timolo2/mnt folder
 # Note change the IP and sharename path below to suit your network
 # You can mount the network share by adding
 # the appropriate entry to the /etc/fstab
