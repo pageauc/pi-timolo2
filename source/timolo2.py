@@ -1240,13 +1240,13 @@ def showBox(file_name):
 
 
 # ------------------------------------------------------------------------------
-def takeMotionQuickImage(image, file_name):
+def takeMotionQuickImage(image_data, file_name):
     """Enlarge and Save stream image if MOTION_TRACK_QUICK_PIC_ON=True"""
     big_image = (
-        cv2.resize(image, (bigImageWidth, bigImageHeight)) if bigImage != 1 else image
+        cv2.resize(image_data, (bigImageWidth, bigImageHeight)) if bigImage != 1 else image
     )
     cv2.imwrite(file_name, big_image)
-    logging.info("Saved %ix%i Image to %s", bigImageWidth, bigImageHeight, file_name)
+    logging.info(f"Saved {bigImageWidth}x{bigImageHeight} Image to {file_name}")
 
 
 # ------------------------------------------------------------------------------
@@ -1255,25 +1255,25 @@ def saveGrayscaleImage(file_name):
     Use PIL to read and resave image as greyscale per IMAGE_GRAYSCALE variable
     in config.py setting
     """
-    image = Image.open(file_name)
-    bw_image = image.convert("L")
+    image_data = Image.open(file_name)
+    bw_image = image_data.convert("L")
     bw_image.save(file_name)
 
 
 # ------------------------------------------------------------------------------
-def saveRotatateImage(file_name, deg):
+def saveRotatateImage(file_name, deg_rot):
     """
     Use PIL to read, rotate and resave rotated image if IMA
     """
     valid_deg = [0, 90, 180, 270, -90, -180, -270]
-    if deg is None:
+    if deg_rot is None:
         return
-    elif deg in valid_deg:
+    elif deg_rot in valid_deg:
         image = Image.open(file_name)
-        rot_image = image.rotate(deg)
+        rot_image = image.rotate(deg_rot)
         rot_image.save(file_name)
     else:
-        logging.warning(f"Rotation {deg} not valid.")
+        logging.warning(f"Rotation {deg_rot} not valid.")
         logging.warning("Valid entries are None, 0, 90, 180, 270, -90, -180, -270")
 
 
@@ -1388,33 +1388,33 @@ def getMotionTrackPoint(grayimage_1, grayimage_2):
 
 
 # ------------------------------------------------------------------------------
-def trackMotionDistance(mPoint1, mPoint2):
+def trackMotionDistance(m_Point1, m_Point2):
     """
     Return the triangulated distance between two tracking locations
     """
-    x1, y1 = mPoint1
-    x2, y2 = mPoint2
-    trackLen = abs(math.hypot(x2 - x1, y2 - y1))
-    return trackLen
+    x1, y1 = m_Point1
+    x2, y2 = m_Point2
+    track_len = abs(math.hypot(x2 - x1, y2 - y1))
+    return track_len
 
 
 # ------------------------------------------------------------------------------
-def getStreamPixAve(streamData):
+def getStreamPixAve(stream_data):
     """
     Calculate the average pixel values for the specified stream
     used for determining day/night or twilight conditions
     """
-    pixAverage = int(np.average(streamData[..., 1]))  # Use 0=red 1=green 2=blue
-    return pixAverage
+    pix_average = int(np.average(stream_data[..., 1]))  # Use 0=red 1=green 2=blue
+    return pix_average
 
 
 # ------------------------------------------------------------------------------
-def checkIfDayStream(currentday_mode, image):
+def checkIfDayStream(currentday_mode, stream_frame):
     """Try to determine if it is day, night or twilight."""
-    dayPixAverage = 0
+    day_px_ave = 0
     currentday_mode = False
-    dayPixAverage = getStreamPixAve(image)
-    if dayPixAverage > DARK_START_PXAVE:
+    day_px_ave = getStreamPixAve(stream_frame)
+    if day_px_ave > DARK_START_PXAVE:
         currentday_mode = True
     return currentday_mode
 
@@ -1423,22 +1423,22 @@ def checkIfDayStream(currentday_mode, image):
 def timeToSleep(currentday_mode):
     """
     Based on weather it is day or night (exclude twilight)
-    return sleepMode boolean based on variable
+    return sleep_mode boolean based on variable
     settings for IMAGE_NO_NIGHT_SHOTS or IMAGE_NO_DAY_SHOTS config.py variables
     Note if both are enabled then no shots will be taken.
     """
     if IMAGE_NO_NIGHT_SHOTS:
         if currentday_mode:
-            sleepMode = False
+            sleep_mode = False
         else:
-            sleepMode = True
+            sleep_mode = True
     elif IMAGE_NO_DAY_SHOTS:
-        sleepMode = False
+        sleep_mode = False
         if currentday_mode:
-            sleepMode = True
+            sleep_mode = True
     else:
-        sleepMode = False
-    return sleepMode
+        sleep_mode = False
+    return sleep_mode
 
 
 # ------------------------------------------------------------------------------
@@ -1463,7 +1463,7 @@ def getSchedStart(date_to_check):
                     # See if a valid time is found returns with current day
                     good_datetime = parse(time_try)
                 except:
-                    logging.error("Bad Date and/or Time Format %s", date_to_check)
+                    logging.error(f"Bad Date and/or Time Format {date_to_check}")
                     logging.error(
                         "Use a Valid Date and/or Time "
                         'Format Eg "DD-MMM-YYYY HH:MM:SS"'
@@ -1485,17 +1485,17 @@ def getSchedStart(date_to_check):
 
 
 # ------------------------------------------------------------------------------
-def checkSchedStart(schedDate):
+def checkSchedStart(sched_date):
     """
     Based on schedule date setting see if current
     datetime is past and return boolean
     to indicate processing can start for
     timelapse or motiontracking
     """
-    startStatus = False
-    if schedDate < datetime.datetime.now():
-        startStatus = True  # sched date/time has passed so start sequence
-    return startStatus
+    start_status = False
+    if sched_date < datetime.datetime.now():
+        start_status = True  # sched date/time has passed so start sequence
+    return start_status
 
 
 # ------------------------------------------------------------------------------
@@ -1506,8 +1506,8 @@ def checkTimer(timer_start, timer_sec):
     """
     timer_expired = False
     right_now = datetime.datetime.now()
-    timeDiff = (right_now - timer_start).total_seconds()
-    if timeDiff >= timer_sec:
+    time_diff = (right_now - timer_start).total_seconds()
+    if time_diff >= timer_sec:
         timer_expired = True
         timer_start = right_now
     return timer_start, timer_expired
@@ -1802,10 +1802,10 @@ def videoRepeat():
     """
     # Check if folder exist and create if required
     if not os.path.isdir(VIDEO_DIR):
-        logging.info("Create videoRepeat Folder %s", VIDEO_DIR)
+        logging.info(f"Create videoRepeat Folder {VIDEO_DIR}")
         os.makedirs(VIDEO_DIR)
     print("--------------------------------------------------------------------")
-    print("VideoRepeat . VIDEO_REPEAT_ON=%s" % VIDEO_REPEAT_ON)
+    print(f"VideoRepeat . VIDEO_REPEAT_ON= {VIDEO_REPEAT_ON}")
     print(
         "   Info ..... Size=%ix%i  VIDEO_PREFIX=%s  VIDEO_FILE_SEC=%i seconds  VIDEO_FPS=%i"
         % (
@@ -1816,14 +1816,12 @@ def videoRepeat():
             VIDEO_FPS,
         )
     )
-    print("   Vid Path . VIDEO_DIR= %s" % VIDEO_DIR)
+    print(f"   Vid Path . VIDEO_DIR= {VIDEO_DIR}")
     print(
         "   Sched .... VIDEO_START_AT=%s blank=Off or Set Valid Date and/or Time to Start Sequence"
         % VIDEO_START_AT
     )
-    print(
-        "   Timer .... VIDEO_SESSION_MIN=%i minutes  0=Continuous" % VIDEO_SESSION_MIN
-    )
+    print(f"   Timer .... VIDEO_SESSION_MIN={VIDEO_SESSION_MIN} min  0=Continuous")
     print(
         "   Num Seq .. VIDEO_NUM_ON=%s  VIDEO_NUM_RECYCLE_ON=%s  VIDEO_NUM_START=%i"
         "  VIDEO_NUM_MAX=%i 0=Continuous"
@@ -1859,8 +1857,8 @@ def videoRepeat():
                   VIDEO_REPEAT_HEIGHT,
                   VIDEO_FPS
                  )
-        timeUsed = (datetime.datetime.now() - videoStartTime).total_seconds()
-        timeRemaining = (VIDEO_SESSION_MIN * 60 - timeUsed) / 60.0
+        time_used = (datetime.datetime.now() - videoStartTime).total_seconds()
+        time_remaining = (VIDEO_SESSION_MIN * 60 - time_used) / 60.0
         videoCount += 1
         if VIDEO_NUM_ON:
             videoNumCounter += 1
@@ -1892,10 +1890,9 @@ def videoRepeat():
                 )
         else:
             logging.info(
-                "Progress: %i Videos Recorded in Folder %s", videoCount, VIDEO_DIR
-            )
+                f"Progress: {videoCount} Videos Recorded in Folder {VIDEO_DIR}")
         if VIDEO_SESSION_MIN > 0:
-            if timeUsed > VIDEO_SESSION_MIN * 60:
+            if time_used > VIDEO_SESSION_MIN * 60:
                 keepRecording = False
                 errorText = (
                     "Stop Recording Since VIDEO_SESSION_MIN=%i minutes Exceeded \n",
@@ -1906,12 +1903,12 @@ def videoRepeat():
             else:
                 logging.info(
                     "Remaining Time %.1f of %i minutes",
-                    timeRemaining,
+                    time_remaining,
                     VIDEO_SESSION_MIN,
                 )
         else:
             videoStartTime = datetime.datetime.now()
-    logging.info("Exit: %i Videos Recorded in Folder %s", videoCount, VIDEO_DIR)
+    logging.info(f"Exit: {videoCount} Videos Recorded in Folder {VIDEO_DIR}")
 
 
 # ------------------------------------------------------------------------------
