@@ -60,10 +60,10 @@ else
     wget -O config.py -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/config.py
 fi
 
-if [ -f video.conf ]; then     # check if local file exists.
-    wget -O video.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
+if [ -f makevideo.conf ]; then     # check if local file exists.
+    wget -O makevideo.conf.new -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/makevideo.conf
 else
-    wget -O video.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/video.conf
+    wget -O makevideo.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/makevideo.conf
 fi
 
 if [ ! -f rclone-example.sh ] ; then
