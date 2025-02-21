@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.07"  # Requires Latest 12.5 release of config.py
+PROG_VER = "ver 13.08"  # Requires Latest 12.5 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 
 import os
@@ -37,7 +37,6 @@ import shutil
 import glob
 import time
 import math
-from threading import Thread
 import numpy as np
 from PIL import Image
 from PIL import ImageFont
@@ -521,8 +520,8 @@ LINE_THICKNESS = 1  # Thickness of opencv drawing lines
 LINE_COLOR = cvWhite  # color of lines to highlight motion stream area
 image_width = IMAGE_WIDTH
 image_height = IMAGE_HEIGHT
-if DARK_GAIN > 16:
-    DARK_GAIN = 16
+DARK_GAIN = min(DARK_GAIN, 16)
+
 
 # ------------------------------------------------------------------------------
 def piCamFound():
@@ -587,19 +586,18 @@ def getMaxResolution():
                     if "x" in resolution_part:
                         max_resolution = resolution_part
                         break
-
+            # this is not used due to break above.  Rethinking
             if max_resolution:
                 logging.info(f"{max_resolution}")
                 cam_resolution = max_resolution.split('x')
                 try:
-                    for num in cam_resolution:
-                        im_W = int(cam_resolution[0])
-                        im_H = int(cam_resolution[1])
-                    return (im_W, im_H)
+                    im_W = int(cam_resolution[0])
+                    im_H = int(cam_resolution[1])
                 except ValueError:
                     return None
+                return (im_W, im_H)
             else:
-                logging.warning("No resolution information Found.")
+                logging.warning("No Max resolution information Found.")
                 return None
         else:
             logging.error("Could Not Detect a RPI Camera.")
@@ -614,10 +612,8 @@ if piCamFound():
         imageWidthMax = cam_max_resolution[0]
         imageHeightMax = cam_max_resolution[1]
         # Round image resolution to avoid picamera errors
-        if image_width > imageWidthMax:
-            image_width = imageWidthMax
-        if image_height > imageHeightMax:
-            image_height = imageHeightMax
+        image_width = min(image_width, imageWidthMax)
+        image_height = min(image_height, imageHeightMax)            
 else:
     sys.exit(1)
 
@@ -663,9 +659,9 @@ def checkConfig():
             % (MOTION_TRACK_ON, TIMELAPSE_ON, PANTILT_SEQ_ON, PANO_ON, VIDEO_REPEAT_ON)
         )
         if VERBOSE_ON:
-            logging.error(error_text)
+            logging.error(error_ext)
         else:
-            sys.stdout.write(error_text)
+            sys.stdout.write(error_ext)
         sys.exit(1)
 
 
@@ -1094,7 +1090,7 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
         pass
     draw = ImageDraw.Draw(im_draw)
     draw.text((im_x, im_y), image_text, text_foreground_colour, font=font)
-    if IMAGE_FORMAT.lower == ".jpg" or IMAGE_FORMAT.lower == ".jpeg":
+    if (IMAGE_FORMAT.lower == ".jpg" or IMAGE_FORMAT.lower == ".jpeg"):
         im_draw.save(image_name, quality="keep")
     else:
         im_draw.save(image_name)
@@ -1184,6 +1180,7 @@ def postImageProcessing(
 # ------------------------------------------------------------------------------
 def getVideoName(path, filename_prefix, numberon, counter):
     """build image file names by number sequence or date/time"""
+    file_name = None
     if numberon:
         if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
             file_name = os.path.join(path, filename_prefix + str(counter) + ".h264")
@@ -1931,10 +1928,10 @@ def timolo():
     timelapse_num_count = 0
     motion_num_count = 0
 
-    tlstr = ""  # Used to display if timelapse is selected
-    mostr = ""  # Used to display if motion is selected
-    moCnt = "non"
-    tlCnt = "non"
+    tl_str = ""  # Used to display if timelapse is selected
+    mo_str = ""  # Used to display if motion is selected
+    mo_cnt = None
+    tl_cnt = None
 
     day_mode = False  # Keep track of night and day based on dayPixAve
 
@@ -1955,7 +1952,7 @@ def timolo():
     if SPACE_TIMER_HOURS > 0:
         lastSpaceCheck = datetime.datetime.now()
     if TIMELAPSE_ON:
-        tlstr = "TimeLapse"
+        tl_str = "TimeLapse"
         # Check if timelapse subDirs reqd and create one if non exists
         tlPath = subDirChecks(
             TIMELAPSE_SUBDIR_MAX_HOURS,
@@ -1965,7 +1962,7 @@ def timolo():
         )
         if TIMELAPSE_NUM_ON:
             timelapse_num_count = getCurrentCount(NUM_PATH_TIMELAPSE, TIMELAPSE_NUM_START)
-            tlCnt = str(timelapse_num_count)
+            tl_cnt = str(timelapse_num_count)
     else:
         logging.warning("Timelapse is Surpressed per TIMELAPSE_ON=%s", TIMELAPSE_ON)
         stop_timelapse = True
@@ -1985,7 +1982,7 @@ def timolo():
         vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                        vflip=IMAGE_VFLIP,
                        hflip=IMAGE_HFLIP).start()
-        mostr = "Motion Tracking"
+        mo_str = "Motion Tracking"
         # Check if motion subDirs required and
         # create one if required and non exists
         mo_path = subDirChecks(
@@ -1993,7 +1990,7 @@ def timolo():
         )
         if MOTION_NUM_ON:
             motion_num_count = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
-            moCnt = str(motion_num_count)
+            mo_cnt = str(motion_num_count)
         trackTimeout = time.time()
         trackTimer = TRACK_TIMEOUT
         startPos = []
@@ -2019,17 +2016,17 @@ def timolo():
         )
         stopMotion = True
     if TIMELAPSE_ON and MOTION_TRACK_ON:
-        tlstr = " and " + tlstr
+        tl_str = " and " + tl_str
 
     if LOG_TO_FILE_ON:
         logging.info(f"LOG_TO_FILE_ON= {LOG_TO_FILE_ON} Logging to Console Disabled.")
         logging.info(f"Sending Console Messages to {log_file_path}")
-        logging.info(f"Entering Loop for {mostr}{lstr}")
+        logging.info(f"Entering Loop for {mo_str}{tl_str}")
     else:
         if PLUGIN_ON:
-            logging.info("plugin %s - Start %s%s Loop ...", PLUGIN_NAME, mostr, tlstr)
+            logging.info("plugin %s - Start %s%s Loop ...", PLUGIN_NAME, mo_str, tl_str)
         else:
-            logging.info(f"Start {mostr}{tlstr} Loop ... ctrl-c Exits")
+            logging.info(f"Start {mo_str}{tl_str} Loop ... ctrl-c Exits")
     if MOTION_TRACK_ON and not checkSchedStart(startMO):
         logging.info('Motion Track: MOTION_START_AT = "%s"', MOTION_START_AT)
         logging.info("Motion Track: Sched Start Set For %s  Please Wait ...", startMO)
