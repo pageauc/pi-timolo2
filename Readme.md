@@ -1,7 +1,8 @@
 # PI-TIMOLO2 [![Mentioned in Awesome <INSERT LIST NAME>](https://awesome.re/mentioned-badge.svg)](https://github.com/thibmaek/awesome-raspberry-pi)
-### Raspberry (Pi)camera, (Ti)melapse, (Mo)tion, (Lo)wlight 
+### Raspberry (Pi)camera2, (Ti)melapse, (Mo)tion, (Lo)wlight also Pano Image Stiching, PanTilt Sequence, Video Repeat, Etc.
 
-## IMPORTANT NOTICE 17-Feb-2025
+
+### IMPORTANT NOTICE 17-Feb-2025
 
 pi-timolo2 runs using libcamera and picamera2 python library, Bullseye (libcamera config), Bookworm Raspberry Pi OS and later.
 This release points to original pi-timolo wiki that may sometimes not be relavent to pi-timolo2 features.
