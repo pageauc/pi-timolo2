@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.08"  # Requires Latest 12.5 release of config.py
+PROG_VER = "ver 13.09"  # Requires Latest 12.5 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 
 import os
@@ -263,7 +263,7 @@ if os.path.isfile(config_file_path):
         )
         print("    Press Ctrl-c to Exit and update config.py")
         print("                      or")
-        text = raw_input("    Press Enter and Default Settings will be used.")
+        text = input("    Press Enter and Default Settings will be used.")
     try:
         # Read Configuration variables from config.py file
         print(f"INFO  : Importing Custom Settings from {config_file_path}")
