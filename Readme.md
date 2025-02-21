@@ -4,11 +4,11 @@
 ## IMPORTANT NOTICE 17-Feb-2025
 
 pi-timolo2 runs using libcamera and picamera2 python library, Bullseye (libcamera config), Bookworm Raspberry Pi OS and later.
-This release points to original pi-timolo wiki that may not be relavent to pi-timolo2 featues.
+This release points to original pi-timolo wiki that may sometimes not be relavent to pi-timolo2 features.
 pi-timolo2 uses supervisor to launch timolo2.py or webserver.py in background.  Use timolo2.sh, webserver.sh to manage (see help eg ***./timolo2.sh help***)
 or menubox.sh when supervisor processes installed.   
-Low Light below the uses a different algorithm based on a video stream thread frame px average below ***DARK_START_PXAVE*** config.py setting.  Seems to woek ok
-Consider this release Beta.  I am still testing.  Issues are welcome
+Low Light uses a different algorithm based on a video stream thread frame px average below ***DARK_START_PXAVE*** per config.py setting.  Seems to woek ok
+Consider this release Beta.  I am still testing and updating.  Issues are welcome
 
 ### For Details See [Program Features](https://github.com/pageauc/pi-timolo/wiki/Introduction#program-features) and [Wiki Instructions](https://github.com/pageauc/pi-timolo/wiki) and [YouTube Videos](https://www.youtube.com/playlist?list=PLLXJw_uJtQLa11A4qjVpn2D2T0pgfaSG0)
 Note: This points to original pi-timolo and some information might not be relavent or wrong for pi-timolo2
