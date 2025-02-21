@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.09"  # Requires Latest 12.5 release of config.py
+PROG_VER = "ver 13.10"  # Requires Latest 12.5 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 
 import os
@@ -80,9 +80,9 @@ except ImportError:
     )
     print("      sudo apt install python3-py3exiv2 -y")
     WARN_ON = True
-except OSError as err:
+except OSError as err_msg:
     print("WARN  : Could Not import python3 pyexiv2 due to an Operating System Error")
-    print("        %s" % err)
+    print(f"        {err_msg}")
     print("        Camera images will be missing exif meta data")
     WARN_ON = True
 
@@ -423,9 +423,9 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
     if PLUGIN_NAME.endswith(".py"):
         PLUGIN_NAME = PLUGIN_NAME[:-3]  # Remove .py extensiion
     pluginPath = os.path.join(pluginDir, PLUGIN_NAME + ".py")
-    logging.info("pluginEnabled - loading PLUGIN_NAME %s", pluginPath)
+    logging.info(f"pluginEnabled - loading PLUGIN_NAME {pluginPath}")
     if not os.path.isdir(pluginDir):
-        logging.error("plugin Directory Not Found at %s", pluginDir)
+        logging.error(f"plugin Directory Not Found at {pluginDir}")
         logging.error("Rerun github curl install script to install plugins")
         logging.error(
             "https://github.com/pageauc/pi-timolo/wiki/"
@@ -434,8 +434,8 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
         logging.error(f"Exiting {PROG_NAME} {PROG_VER} Due to Error")
         sys.exit(1)
     elif not os.path.isfile(pluginPath):
-        logging.error("File Not Found PLUGIN_NAME %s", pluginPath)
-        logging.error("Check Spelling of PLUGIN_NAME Value in %s", config_file_path)
+        logging.error(f"File Not Found PLUGIN_NAME {pluginPath}")
+        logging.error(f"Check Spelling of PLUGIN_NAME Value in {config_file_path}")
         logging.error("------- Valid Names -------")
         validPlugin = glob.glob(pluginDir + "/*py")
         validPlugin.sort()
@@ -443,7 +443,7 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
             pluginFile = os.path.basename(entry)
             plugin = pluginFile.rsplit(".", 1)[0]
             if not ((plugin == "__init__") or (plugin == "current")):
-                logging.error("        %s", plugin)
+                logging.error(f"        {plugin}")
         logging.error("------- End of List -------")
         logging.error("Note: PLUGIN_NAME Should Not have .py Ending.")
         logging.error("or Rerun github curl install command.  See github wiki")
@@ -456,11 +456,11 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
     else:
         pluginCurrent = os.path.join(pluginDir, "current.py")
         try:  # Copy image file to recent folder
-            logging.info("Copy %s to %s", pluginPath, pluginCurrent)
+            logging.info(f"Copy {pluginPath} to {pluginCurrent}")
             shutil.copy(pluginPath, pluginCurrent)
-        except OSError as err:
+        except OSError as err_msg:
             logging.error(
-                "Copy Failed from %s to %s - %s", pluginPath, pluginCurrent, err
+                "Copy Failed from %s to %s - %s", pluginPath, pluginCurrent, err_msg
             )
             logging.error("Check permissions, disk space, Etc.")
             logging.error(f"Exiting {PROG_NAME} {PROG_VER} Due to Error")
@@ -475,8 +475,8 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
             pluginCurrentpyc = os.path.join(pluginDir, "current.pyc")
             if os.path.isfile(pluginCurrentpyc):
                 os.remove(pluginCurrentpyc)
-        except OSError as err:
-            logging.warning("Failed Removal of %s - %s", pluginCurrentpyc, err)
+        except OSError as err_msg:
+            logging.warning("Failed Removal of %s - %s", pluginCurrentpyc, err_msg)
             time.sleep(5)
 else:
     logging.info("No Plugin Enabled per PLUGIN_ON=%s", PLUGIN_ON)
@@ -596,9 +596,8 @@ def getMaxResolution():
                 except ValueError:
                     return None
                 return (im_W, im_H)
-            else:
-                logging.warning("No Max resolution information Found.")
-                return None
+            logging.warning("No Max resolution information Found.")
+            return None
         else:
             logging.error("Could Not Detect a RPI Camera.")
             print(result.stderr)
@@ -613,7 +612,7 @@ if piCamFound():
         imageHeightMax = cam_max_resolution[1]
         # Round image resolution to avoid picamera errors
         image_width = min(image_width, imageWidthMax)
-        image_height = min(image_height, imageHeightMax)            
+        image_height = min(image_height, imageHeightMax)
 else:
     sys.exit(1)
 
@@ -701,11 +700,11 @@ def createSubdir(dir_name, filename_prefix):
     if not os.path.isdir(sub_dir_path):
         try:
             os.makedirs(sub_dir_path)
-        except OSError as err:
+        except OSError as err_msg:
             logging.error(
                 "Cannot Create Directory %s - %s, using default location.",
                 sub_dir_path,
-                err,
+                err_msg,
             )
             sub_dir_path = dir_name
         else:
@@ -940,26 +939,26 @@ def freeSpaceUpTo(freeMB, mediaDir, extension=IMAGE_FORMAT):
             filePath = file_list.pop()
             try:
                 os.remove(filePath)
-            except OSError as err:
-                logging.error("Del Failed %s", filePath)
-                logging.error("Error is %s", err)
-            else:
-                delcnt += 1
-                logging.info("Del %s", filePath)
-                logging.info(
-                    "Target=%i MB  Avail=%i MB  Deleted %i of %i Files ",
-                    targetFreeBytes / MB2Bytes,
-                    availFreeBytes / MB2Bytes,
-                    delcnt,
-                    totFiles,
+            except OSError as err_msg:
+                logging.error(f"Del Failed {filePath}")
+                logging.error(f"Error is {err_msg}")
+
+            delcnt += 1
+            logging.info(f"Del {filePath}")
+            logging.info(
+                "Target=%i MB  Avail=%i MB  Deleted %i of %i Files ",
+                targetFreeBytes / MB2Bytes,
+                availFreeBytes / MB2Bytes,
+                delcnt,
+                totFiles,
+            )
+            # Avoid deleting more than 1/4 of files at one time
+            if delcnt > totFiles / 4:
+                logging.warning("Max Deletions Reached %i of %i", delcnt, totFiles)
+                logging.warning(
+                    "Deletions Restricted to 1/4 of " "total files per session."
                 )
-                # Avoid deleting more than 1/4 of files at one time
-                if delcnt > totFiles / 4:
-                    logging.warning("Max Deletions Reached %i of %i", delcnt, totFiles)
-                    logging.warning(
-                        "Deletions Restricted to 1/4 of " "total files per session."
-                    )
-                    break
+                break
         logging.info("Session Ended")
     else:
         logging.error("Directory Not Found - %s", mediaDirPath)
@@ -1231,12 +1230,12 @@ def showBox(file_name):
     Adjust track config.py file MOTION_TRACK_TRIG_LEN as required.
     """
     working_image = cv2.imread(file_name)
-    x1y1 = (
+    x1_y1 = (
         int((IMAGE_WIDTH - STREAM_WIDTH) / 2),
         int((image_height - STREAM_HEIGHT) / 2),
     )
-    x2y2 = (x1y1[0] + STREAM_WIDTH, x1y1[1] + STREAM_HEIGHT)
-    cv2.rectangle(working_image, x1y1, x2y2, LINE_COLOR, LINE_THICKNESS)
+    x2_y2 = (x1_y1[0] + STREAM_WIDTH, x1_y1[1] + STREAM_HEIGHT)
+    cv2.rectangle(working_image, x1_y1, x2_y2, LINE_COLOR, LINE_THICKNESS)
     cv2.imwrite(file_name, working_image)
 
 
@@ -1625,7 +1624,7 @@ def takePantiltSequence(file_name, day_mode, num_count, num_path, im_data):
     elif not PANTILT_ON:
         logging.error(f'takePantiltSequence Requires PANTILT_ON=True. Edit in Config.py')
         return
-
+    seq_prefix = PANTILT_SEQ_IMAGE_PREFIX + IMAGE_NAME_PREFIX
     if MOTION_TRACK_ON and MOTION_TRACK_PANTILT_SEQ_ON:
         seq_prefix = MOTION_PREFIX + IMAGE_NAME_PREFIX
         if PANTILT_SEQ_ON:
@@ -2598,7 +2597,7 @@ if __name__ == "__main__":
             pluginCurrentpyc = os.path.join(pluginDir, "current.pyc")
             if os.path.isfile(pluginCurrentpyc):
                 os.remove(pluginCurrentpyc)
-    except OSError as err:
-        logging.warning("Failed To Remove File %s - %s", pluginCurrentpyc, err)
+    except OSError as err_msg:
+        logging.warning("Failed To Remove File %s - %s", pluginCurrentpyc, err_msg)
         sys.exit(1)
     print("Wait ...")
