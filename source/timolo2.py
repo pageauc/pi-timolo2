@@ -14,7 +14,7 @@ __version__ = PROG_VER  # May test for version number at a future time
 
 import os
 os.environ["LIBCAMERA_LOG_LEVELS"]="FATAL"
-warn_on = False  # Add short delay to review warning messages
+WARN_ON = False  # Add short delay to review warning messages
 my_path = os.path.abspath(__file__)  # Find the full path of this python script
 # get the path location only (excluding script name)
 base_dir = os.path.dirname(my_path)
@@ -61,7 +61,7 @@ except ImportError:
     print(
         "       See https://github.com/pageauc/pi-timolo/wiki/Basic-Trouble-Shooting#problems-with-python-pip-install-on-wheezy"
     )
-    warn_on = True
+    WARN_ON = True
     # Disable get_sched_start if import fails for Raspbian wheezy or Jessie
     TIMELAPSE_START_AT = ""
     MOTION_START_AT = ""
@@ -80,12 +80,12 @@ except ImportError:
         "        If Running under python3 then Install pyexiv2 library for python3 per"
     )
     print("      sudo apt install python3-py3exiv2 -y")
-    warn_on = True
+    WARN_ON = True
 except OSError as err:
     print("WARN  : Could Not import python3 pyexiv2 due to an Operating System Error")
     print("        %s" % err)
     print("        Camera images will be missing exif meta data")
-    warn_on = True
+    WARN_ON = True
 
 """
 This is a dictionary of the default settings for pi-timolo.py
@@ -202,7 +202,6 @@ default_settings = {
     "PANTILT_SEQ_NUM_ON": True,
     "PANTILT_SEQ_NUM_START": 1000,
     "PANTILT_SEQ_NUM_RECYCLE_ON": True,
-    "PANTILT_SEQ_NUM_MAX": 200,
     "PANTILT_SEQ_STOPS": [
         (90, 10),
         (45, 10),
@@ -272,7 +271,7 @@ if os.path.isfile(config_file_path):
         from config import *
     except ImportError:
         print(f"WARN  : Problem Importing Variables from {config_file_path}")
-        warn_on = True
+        WARN_ON = True
 else:
     print(f"WARN  : {config_file_path} File Not Found. Cannot Import Custom Settings.")
     print("        Run Console Command Below to Download File from GitHub Repo")
@@ -281,7 +280,7 @@ else:
     )
     print("        or cp config.py.new config.py")
     print("        Will now use default_settings dictionary variable values.")
-    warn_on = True
+    WARN_ON = True
 
 """
 Check if variables were imported from config.py. If not create variable using
@@ -293,7 +292,7 @@ for key, val in default_settings.items():
     except NameError:
         print("WARN  : config.py Variable Not Found. Setting " + key + " = " + str(val))
         exec(key + "=val")
-        warn_on = True
+        WARN_ON = True
 
 # Setup logging per config.py variables.
 if LOG_TO_FILE_ON:
@@ -372,7 +371,7 @@ if not os.path.isfile(user_motion_filepath):
         "WARN  : %s File Not Found. Cannot Import user_motion_code functions."
         % user_motion_filepath
     )
-    warn_on = True
+    WARN_ON = True
 else:
     # Read Configuration variables from config.py file
     try:
@@ -381,10 +380,10 @@ else:
     except ImportError:
         print("WARN  : Failed Import of File user_motion_code.py Investigate Problem")
         motionCode = False
-        warn_on = True
+        WARN_ON = True
 
 # Give some time to read any warnings
-if warn_on and VERBOSE_ON:
+if WARN_ON and VERBOSE_ON:
     print("")
     print("Please Review Warnings  Wait 10 sec ...")
     time.sleep(10)
@@ -1077,7 +1076,7 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
         im_y = height - 50  # show text at bottom of image
     else:
         im_y = 10  # show text at top of image
-        
+
     TEXT = IMAGE_NAME_PREFIX + date_to_print
     font_path = "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"
     font = ImageFont.truetype(font_path, SHOW_TEXT_FONT_SIZE, encoding="unic")
@@ -1085,7 +1084,7 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
         image_text = TEXT.decode("utf-8")  # required for python2
     except:
         image_text = TEXT  # Just set for python3
-        
+
     im_draw = Image.open(image_name)
 
     try:  # Read exif data since ImageDraw does not save this metadata
@@ -1577,8 +1576,8 @@ def takeVideo(file_name, vid_seconds, vid_W=1280, vid_H=720, vid_fps=25):
                 logging.warning(f"Camera Error. Retry {vid_retries+1} of {vid_total_retries} Wait ...")
                 time.sleep(5)
                 continue
-            break                
-            
+            break
+
         time.sleep(vid_seconds)
         picam2.stop_recording()
         picam2.close()
@@ -1779,7 +1778,7 @@ def takePano(pano_seq_num, day_mode, im_data):
     stitch_cmd = PANO_PROG_PATH + " " + pano_file_path + pano_image_files
     try:
         logging.info("Run Image Stitching Command per Below")
-        print("%s" % stitch_cmd)
+        print(f"{stitch_cmd}")
         # spawn stitch command with parameters as seperate task
         proc = subprocess.Popen(
             stitch_cmd, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True
@@ -1928,7 +1927,6 @@ def timolo():
 
     cam_tl_pos = 0  # PANTILT_SEQ_STOPS List Start position of pantilt
     pan_x, tilt_y = PANTILT_SEQ_STOPS[cam_tl_pos]
-    dotCount = 0
     checkMediaPaths()
     timelapse_num_count = 0
     motion_num_count = 0
@@ -2514,9 +2512,9 @@ def timolo():
                         MOTION_PREFIX,
                     )
                     if TIMELAPSE_ON:
-                        logging.info("Waiting for Next Timelapse or Motion Tracking Event ...")                       
+                        logging.info("Waiting for Next Timelapse or Motion Tracking Event ...")
                     else:
-                       logging.info("Waiting for Next Motion Tracking Event ...")
+                        logging.info("Waiting for Next Motion Tracking Event ...")
             # Take panoramic images and stitch together if possible per settings
             if PANTILT_ON and PANO_ON:
                 # force a pano on first startup then go by timer.
