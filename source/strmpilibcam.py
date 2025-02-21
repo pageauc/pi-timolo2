@@ -45,7 +45,7 @@ class CamStream:
                 print("Bye ...")
                 sys.exit(1)
             try:
-                time.sleep(2) # add a wait
+                time.sleep(4) # add a wait
                 self.picam2 = Picamera2() # initialize the camera
                 # self.picam2.set_logging(Picamera2.ERROR)
                 self.picam2.configure(self.picam2.create_preview_configuration(
@@ -54,13 +54,13 @@ class CamStream:
                                       transform=Transform(vflip=self.vflip,
                                                           hflip=self.hflip)))
             except RuntimeError:
-                time.sleep(4)
                 print(f'WARN : Camera Error. Retrying {self.retries}')
+                time.sleep(4)
                 continue
             break
 
         self.picam2.start()
-        time.sleep(2) # Allow camera time to warm up
+        time.sleep(3) # Allow camera time to warm up
 
         # initialize variables
         self.thread = None  # Initialize Thread variable
@@ -91,5 +91,5 @@ class CamStream:
     def stop(self):
         '''Stop lib camera and thread'''
         self.picam2.close()  # Close Camera
-        time.sleep(2)  # allow camera time to released
+        time.sleep(4)  # allow camera time to released
         self.stopped = True
