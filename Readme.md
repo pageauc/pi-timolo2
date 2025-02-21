@@ -1,5 +1,6 @@
 # PI-TIMOLO2 [![Mentioned in Awesome <INSERT LIST NAME>](https://awesome.re/mentioned-badge.svg)](https://github.com/thibmaek/awesome-raspberry-pi)
-### Raspberry (Pi)camera2, (Ti)melapse, (Mo)tion, (Lo)wlight also Pano Image Stiching, PanTilt Sequence, Video Repeat, Etc.
+### Raspberry (Pi)camera2, (Ti)melapse, (Mo)tion, (Lo)wlight
+Also PanTilt Pano Image Stiching, PanTilt Sequence, Video Repeat, Quick Timelapse, Plugins, RClone Sync Folder Upload, Etc.
 
 
 ### IMPORTANT NOTICE 17-Feb-2025
