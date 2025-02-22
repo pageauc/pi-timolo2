@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.12"  # Requires Latest 12.5 release of config.py
+PROG_VER = "ver 13.13"  # Requires Latest 13.13 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 import logging
 import os
@@ -733,11 +733,11 @@ def subDirCheckMaxHrs(dir_path, hrs_max, filename_prefix):
     """
     dir_name = os.path.split(dir_path)[1]  # split dir path and keep dir_name
     # remove filename_prefix from dir_name so just date-time left
-    dirStr = dir_name.replace(filename_prefix, "")
+    dir_str = dir_name.replace(filename_prefix, "")
     # convert string to datetime
-    dirDate = datetime.datetime.strptime(dirStr, "%Y-%m%d-%H%M")
+    dir_date = datetime.datetime.strptime(dir_str, "%Y-%m%d-%H%M")
     right_now = datetime.datetime.now()  # get datetime now
-    diff = right_now - dirDate  # get time difference between dates
+    diff = right_now - dir_date  # get time difference between dates
     days, seconds = diff.days, diff.seconds
     dir_age_hours = float(days * 24 + (seconds / 3600.0))  # convert to hours
     if dir_age_hours > hrs_max:  # See if hours are exceeded
@@ -1889,12 +1889,12 @@ def videoRepeat():
         if VIDEO_SESSION_MIN > 0:
             if time_used > VIDEO_SESSION_MIN * 60:
                 keep_recording = False
-                errorText = (
+                error_text = (
                     "Stop Recording Since VIDEO_SESSION_MIN=%i minutes Exceeded \n",
                     VIDEO_SESSION_MIN,
                 )
-                logging.warning(errorText)
-                sys.stdout.write(errorText)
+                logging.warning(error_text)
+                sys.stdout.write(error_text)
             else:
                 logging.info(
                     "Remaining Time %.1f of %i minutes",
@@ -2203,7 +2203,7 @@ def timolo():
                 if take_timelapse and (not stop_timelapse):
                     if PLUGIN_ON:
                         if TIMELAPSE_EXIT_SEC > 0:
-                            exitSecProgress = (
+                            exit_sec_progress = (
                                 datetime.datetime.now() - timelapse_exit_start
                             ).total_seconds()
                             logging.info(
@@ -2212,7 +2212,7 @@ def timolo():
                                 PLUGIN_NAME,
                                 DAY_MODE,
                                 TIMELAPSE_TIMER_SEC,
-                                exitSecProgress,
+                                exit_sec_progress,
                                 TIMELAPSE_EXIT_SEC,
                             )
                         else:
@@ -2226,7 +2226,7 @@ def timolo():
                             )
                     else:
                         if TIMELAPSE_EXIT_SEC > 0:
-                            exitSecProgress = (
+                            exit_sec_progress = (
                                 datetime.datetime.now() - timelapse_exit_start
                             ).total_seconds()
                             logging.info(
@@ -2234,7 +2234,7 @@ def timolo():
                                 "  ExitSec=%i/%i Status",
                                 DAY_MODE,
                                 TIMELAPSE_TIMER_SEC,
-                                exitSecProgress,
+                                exit_sec_progress,
                                 TIMELAPSE_EXIT_SEC,
                             )
                         else:
