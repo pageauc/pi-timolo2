@@ -492,8 +492,9 @@ if not IMAGE_FORMAT.startswith(".", 0, 1):
 #      System Variables
 # Should Not need to be customized
 # ==================================
-SECONDS2MICRO = 1000000  # Used to convert from seconds to microseconds
-day_mode = False  # default should always be False.
+SECONDS_TO_MICRO = 1000000  # Used to convert from seconds to microseconds
+MB_TO_BYTES = 1048576  # Conversion from MB to Bytes
+DAY_MODE = False  # default should always be False.
 MOTION_PATH = os.path.join(base_dir, MOTION_DIR)  # Store Motion images
 # motion dat file to save currentCount
 
@@ -508,16 +509,34 @@ NUM_PATH_PANTILT_SEQ = os.path.join(
 TIMELAPSE_PATH = os.path.join(base_dir, TIMELAPSE_DIR)  # Store Time Lapse images
 
 # Colors for drawing lines
-cvWhite = (255, 255, 255)
-cvBlack = (0, 0, 0)
-cvBlue = (255, 0, 0)
-cvGreen = (0, 255, 0)
-cvRed = (0, 0, 255)
+CV_WHITE = (255, 255, 255)
+CV_BLACK = (0, 0, 0)
+CV_BLUE = (255, 0, 0)
+CV_GREEN = (0, 255, 0)
+CV_RED = (0, 0, 255)
 LINE_THICKNESS = 1  # Thickness of opencv drawing lines
-LINE_COLOR = cvWhite  # color of lines to highlight motion stream area
+LINE_COLOR = CV_WHITE  # color of lines to highlight motion stream area
 image_width = IMAGE_WIDTH
 image_height = IMAGE_HEIGHT
 DARK_GAIN = min(DARK_GAIN, 16)
+
+# increase size of MOTION_TRACK_QUICK_PIC_ON image
+BIG_IMAGE = MOTION_TRACK_QUICK_PIC_BIGGER
+BIG_IMAGE_WIDTH = int(STREAM_WIDTH * BIG_IMAGE)
+BIG_IMAGE_HEIGHT = int(STREAM_HEIGHT * BIG_IMAGE)
+
+TRACK_TRIG_LEN = MOTION_TRACK_TRIG_LEN  # Pixels moved to trigger motion photo
+# Don't track progress until this Len reached.
+TRACK_TRIG_LEN_MIN = int(MOTION_TRACK_TRIG_LEN / 6)
+# Set max overshoot triglen allowed half cam height
+TRACK_TRIG_LEN_MAX = int(STREAM_HEIGHT / 2)
+# Timeout seconds Stops motion tracking when no activity
+TRACK_TIMEOUT = MOTION_TRACK_TIMEOUT_SEC
+
+# OpenCV Contour sq px area must be greater than this.
+MIN_AREA = MOTION_TRACK_MIN_AREA
+BLUR_SIZE = 10  # OpenCV setting for Gaussian difference image blur
+THRESHOLD_SENSITIVITY = 20  # OpenCV setting for difference image threshold
 
 
 # ------------------------------------------------------------------------------
@@ -605,31 +624,13 @@ def getMaxResolution():
 if piCamFound():
     cam_max_resolution = getMaxResolution()
     if cam_max_resolution is not None:
-        imageWidthMax = cam_max_resolution[0]
-        imageHeightMax = cam_max_resolution[1]
+        image_width_max = cam_max_resolution[0]
+        image_height_max = cam_max_resolution[1]
         # Round image resolution to avoid picamera errors
-        image_width = min(image_width, imageWidthMax)
-        image_height = min(image_height, imageHeightMax)
+        image_width = min(image_width, image_width_max)
+        image_height = min(image_height, image_height_max)
 else:
     sys.exit(1)
-
-# increase size of MOTION_TRACK_QUICK_PIC_ON image
-BIG_IMAGE = MOTION_TRACK_QUICK_PIC_BIGGER
-BIG_IMAGE_WIDTH = int(STREAM_WIDTH * BIG_IMAGE)
-BIG_IMAGE_HEIGHT = int(STREAM_HEIGHT * BIG_IMAGE)
-
-TRACK_TRIG_LEN = MOTION_TRACK_TRIG_LEN  # Pixels moved to trigger motion photo
-# Don't track progress until this Len reached.
-TRACK_TRIG_LEN_MIN = int(MOTION_TRACK_TRIG_LEN / 6)
-# Set max overshoot triglen allowed half cam height
-TRACK_TRIG_LEN_MAX = int(STREAM_HEIGHT / 2)
-# Timeout seconds Stops motion tracking when no activity
-TRACK_TIMEOUT = MOTION_TRACK_TIMEOUT_SEC
-
-# OpenCV Contour sq px area must be greater than this.
-MIN_AREA = MOTION_TRACK_MIN_AREA
-BLUR_SIZE = 10  # OpenCV setting for Gaussian difference image blur
-THRESHOLD_SENSITIVITY = 20  # OpenCV setting for difference image threshold
 
 
 # ------------------------------------------------------------------------------
@@ -662,25 +663,25 @@ def checkConfig():
 
 
 # ------------------------------------------------------------------------------
-def getLastSubdir(dir_name):
+def getLastSubdir(dir_path):
     """Scan for directories and return most recent"""
     dir_list = [
         name
-        for name in os.listdir(dir_name)
-        if os.path.isdir(os.path.join(dir_name, name))
+        for name in os.listdir(dir_path)
+        if os.path.isdir(os.path.join(dir_path, name))
     ]
     if len(dir_list) > 0:
         last_subdir = sorted(dir_list)[-1]
-        last_subdir = os.path.join(dir_name, last_subdir)
+        last_subdir = os.path.join(dir_path, last_subdir)
     else:
-        last_subdir = dir_name
+        last_subdir = dir_path
     return last_subdir
 
 
 # ------------------------------------------------------------------------------
-def createSubdir(dir_name, filename_prefix):
+def createSubdir(dir_path, filename_prefix):
     """
-    Create a subdirectory in dir_name with
+    Create a subdirectory in dir_path with
     unique name based on filename_prefix and date time
     """
     right_now = datetime.datetime.now()
@@ -693,7 +694,7 @@ def createSubdir(dir_name, filename_prefix):
         right_now.hour,
         right_now.minute,
     )
-    sub_dir_path = os.path.join(dir_name, sub_dir_name)
+    sub_dir_path = os.path.join(dir_path, sub_dir_name)
     if not os.path.isdir(sub_dir_path):
         try:
             os.makedirs(sub_dir_path)
@@ -703,36 +704,36 @@ def createSubdir(dir_name, filename_prefix):
                 sub_dir_path,
                 str(e),
             )
-            sub_dir_path = dir_name
+            sub_dir_path = dir_path
         else:
             logging.info("Created %s", sub_dir_path)
     else:
-        sub_dir_path = dir_name
+        sub_dir_path = dir_path
     return sub_dir_path
 
 
 # ------------------------------------------------------------------------------
-def subDirCheckMaxFiles(dir_name, files_max):
+def subDirCheckMaxFiles(dir_path, files_max):
     """Count number of files in a folder path"""
-    file_list = glob.glob(dir_name + "/*jpg")
+    file_list = glob.glob(dir_path + "/*jpg")
     count = len(file_list)
     if count > files_max:
         make_new_dir = True
-        logging.info("Total Files in %s Exceeds %i", dir_name, files_max)
+        logging.info("Total Files in %s Exceeds %i", dir_path, files_max)
     else:
         make_new_dir = False
     return make_new_dir
 
 
 # ------------------------------------------------------------------------------
-def subDirCheckMaxHrs(dir_name, hrs_max, filename_prefix):
+def subDirCheckMaxHrs(dir_path, hrs_max, filename_prefix):
     """
     Note to self need to add error checking
-    extract the date-time from the dir_name name
+    extract the date-time from the dir_path name
     """
-    dirName = os.path.split(dir_name)[1]  # split dir path and keep dirName
-    # remove filename_prefix from dirName so just date-time left
-    dirStr = dirName.replace(filename_prefix, "")
+    dir_name = os.path.split(dir_path)[1]  # split dir path and keep dir_name
+    # remove filename_prefix from dir_name so just date-time left
+    dirStr = dir_name.replace(filename_prefix, "")
     # convert string to datetime
     dirDate = datetime.datetime.strptime(dirStr, "%Y-%m%d-%H%M")
     right_now = datetime.datetime.now()  # get datetime now
@@ -741,34 +742,34 @@ def subDirCheckMaxHrs(dir_name, hrs_max, filename_prefix):
     dir_age_hours = float(days * 24 + (seconds / 3600.0))  # convert to hours
     if dir_age_hours > hrs_max:  # See if hours are exceeded
         make_new_dir = True
-        logging.info("MaxHrs {dir_age_hours} Exceeds {hrs_max} for {dir_name}")
+        logging.info("MaxHrs {dir_age_hours} Exceeds {hrs_max} for {dir_path}")
     else:
         make_new_dir = False
     return make_new_dir
 
 
 # ------------------------------------------------------------------------------
-def subDirChecks(max_hours, max_files, dir_name, filename_prefix):
+def subDirChecks(max_hours, max_files, dir_path, filename_prefix):
     """Check if motion SubDir needs to be created"""
     if max_hours < 1 and max_files < 1:  # No Checks required
-        # logging.info('No sub-folders Required in %s', dir_name)
-        sub_dir_path = dir_name
+        # logging.info('No sub-folders Required in %s', dir_path)
+        sub_dir_path = dir_path
     else:
-        sub_dir_path = getLastSubdir(dir_name)
-        if sub_dir_path == dir_name:  # No subDir Found
-            logging.info("No sub folders Found in %s",dir_name )
-            sub_dir_path = createSubdir(dir_name, filename_prefix)
+        sub_dir_path = getLastSubdir(dir_path)
+        if sub_dir_path == dir_path:  # No subDir Found
+            logging.info("No sub folders Found in %s",dir_path )
+            sub_dir_path = createSubdir(dir_path, filename_prefix)
         # Check MaxHours Folder Age Only
         elif max_hours > 0 and max_files < 1:
             if subDirCheckMaxHrs(sub_dir_path, max_hours, filename_prefix):
-                sub_dir_path = createSubdir(dir_name, filename_prefix)
+                sub_dir_path = createSubdir(dir_path, filename_prefix)
         elif max_hours < 1 and max_files > 0:  # Check Max Files Only
             if subDirCheckMaxFiles(sub_dir_path, max_files):
-                sub_dir_path = createSubdir(dir_name, filename_prefix)
+                sub_dir_path = createSubdir(dir_path, filename_prefix)
         elif max_hours > 0 and max_files > 0:  # Check both Max Files and Age
             if subDirCheckMaxHrs(sub_dir_path, max_hours, filename_prefix):
                 if subDirCheckMaxFiles(sub_dir_path, max_files):
-                    sub_dir_path = createSubdir(dir_name, filename_prefix)
+                    sub_dir_path = createSubdir(dir_path, filename_prefix)
                 else:
                     logging.info("max_files %i Not Exceeded in %s", max_files, sub_dir_path)
     os.path.abspath(sub_dir_path)
@@ -896,15 +897,15 @@ def saveRecent(recent_max, recent_dir, file_path, filename_prefix):
 
 
 # ------------------------------------------------------------------------------
-def filesToDelete(mediaDirPath, file_ext=IMAGE_FORMAT):
+def filesToDelete(media_dir_path, file_ext=IMAGE_FORMAT):
     """
     Deletes files of specified format extension
-    by walking folder structure from specified mediaDirPath
+    by walking folder structure from specified media_dir_path
     """
     return sorted(
         (
             os.path.join(dirname, file_name)
-            for dirname, dirnames, file_names in os.walk(mediaDirPath)
+            for dirname, dirnames, file_names in os.walk(media_dir_path)
             for file_name in file_names
             if file_name.endswith(file_ext)
         ),
@@ -919,16 +920,15 @@ def freeSpaceUpTo(free_mb, media_dir, file_ext=IMAGE_FORMAT):
     Walks media_dir and deletes oldest files until SPACE_TARGET_MB is achieved.
     You should Use with Caution this feature.
     """
-    mediaDirPath = os.path.abspath(media_dir)
-    if os.path.isdir(mediaDirPath):
-        mb_2_bytes = 1048576  # Conversion from MB to Bytes
-        target_free_bytes = free_mb * mb_2_bytes
+    media_dir_path = os.path.abspath(media_dir)
+    if os.path.isdir(media_dir_path):
+        target_free_bytes = free_mb * MB_TO_BYTES
         file_list = filesToDelete(media_dir, file_ext)
         total_files = len(file_list)
         delcnt = 0
         logging.info("Session Started")
         while file_list:
-            statv = os.statvfs(mediaDirPath)
+            statv = os.statvfs(media_dir_path)
             avail_free_bytes = statv.f_bfree * statv.f_bsize
             if avail_free_bytes >= target_free_bytes:
                 break
@@ -943,8 +943,8 @@ def freeSpaceUpTo(free_mb, media_dir, file_ext=IMAGE_FORMAT):
             logging.info("Del %s", file_path)
             logging.info(
                 "Target=%i MB  Avail=%i MB  Deleted %i of %i Files ",
-                target_free_bytes / mb_2_bytes,
-                avail_free_bytes / mb_2_bytes,
+                target_free_bytes / MB_TO_BYTES,
+                avail_free_bytes / MB_TO_BYTES,
                 delcnt,
                 total_files,
             )
@@ -957,7 +957,7 @@ def freeSpaceUpTo(free_mb, media_dir, file_ext=IMAGE_FORMAT):
                 break
         logging.info("Session Ended")
     else:
-        logging.error("Directory Not Found - %s", mediaDirPath)
+        logging.error("Directory Not Found - %s", media_dir_path)
 
 
 # ------------------------------------------------------------------------------
@@ -974,17 +974,17 @@ def freeDiskSpaceCheck(last_space_check):
         ).total_seconds() > SPACE_TIMER_HOURS * 3600:
             last_space_check = datetime.datetime.now()
             if SPACE_TARGET_MB < 100:  # set freeSpaceMB to reasonable value if too low
-                diskFreeMB = 100
+                disk_free_mb = 100
             else:
-                diskFreeMB = SPACE_TARGET_MB
+                disk_free_mb = SPACE_TARGET_MB
             logging.info(
-                "SPACE_TIMER_HOURS=%i  diskFreeMB=%i  SPACE_MEDIA_DIR=%s SPACE_TARGET_EXT=%s",
+                "SPACE_TIMER_HOURS=%i  disk_free_mb=%i  SPACE_MEDIA_DIR=%s SPACE_TARGET_EXT=%s",
                 SPACE_TIMER_HOURS,
-                diskFreeMB,
+                disk_free_mb,
                 SPACE_MEDIA_DIR,
                 SPACE_TARGET_EXT,
             )
-            freeSpaceUpTo(diskFreeMB, SPACE_MEDIA_DIR, SPACE_TARGET_EXT)
+            freeSpaceUpTo(disk_free_mb, SPACE_MEDIA_DIR, SPACE_TARGET_EXT)
     return last_space_check
 
 
@@ -1139,16 +1139,16 @@ def postImageProcessing(
         )
         if number_on:
             if not re_cycle and counter_max > 0:
-                counterStr = "%i/%i " % (file_counter, counter_start + counter_max)
-                imageText = counterStr + dateTimeText
+                counter_str = "%i/%i " % (file_counter, counter_start + counter_max)
+                image_text_str = counter_str + dateTimeText
             else:
-                counterStr = "%i  " % (file_counter)
-                imageText = counterStr + dateTimeText
+                counter_str = "%i  " % (file_counter)
+                image_text_str = counter_str + dateTimeText
         else:
-            imageText = dateTimeText
-        # Now put the imageText on the current image
+            image_text_str = dateTimeText
+        # Now put the image_text_str on the current image
         #try:  # This will fail for a video file so pass
-        writeTextToImage(file_name, imageText, currentday_mode)
+        writeTextToImage(file_name, image_text_str, currentday_mode)
         #except:
         #    pass
     # Process currentCount for next image if number sequence is enabled
@@ -1282,7 +1282,7 @@ def getExposureSettings(px_ave):
         analogue_gain = 0        # Auto
     else:
         exposure_sec = DARK_MAX_EXP_SEC / DARK_START_PXAVE
-        exposure_microsec = int(exposure_sec * (DARK_START_PXAVE - px_ave) * SECONDS2MICRO)
+        exposure_microsec = int(exposure_sec * (DARK_START_PXAVE - px_ave) * SECONDS_TO_MICRO)
         analogue_gain = DARK_GAIN
     return exposure_microsec, analogue_gain
 
@@ -1342,7 +1342,7 @@ def takeImage(file_path, im_data):
 
 
 # ------------------------------------------------------------------------------
-def getMotionTrackPoint(grayimage_1, grayimage_2):
+def getMotionTrackPoint(grayimage1, grayimage2):
     """
     Process two cropped grayscale images.
     check for motion and return center point
@@ -1351,7 +1351,7 @@ def getMotionTrackPoint(grayimage_1, grayimage_2):
     move_center_point = []  # initialize list of movementCenterPoints
     biggest_area = MIN_AREA
     # Get differences between the two greyed images
-    difference_image = cv2.absdiff(grayimage_1, grayimage_2)
+    difference_image = cv2.absdiff(grayimage1, grayimage2)
     # Blur difference image to enhance motion vectors
     difference_image = cv2.blur(difference_image, (BLUR_SIZE, BLUR_SIZE))
     # Get threshold of blurred difference image
@@ -1371,9 +1371,9 @@ def getMotionTrackPoint(grayimage_1, grayimage_2):
         )
     if contours:
         for c in contours:
-            cArea = cv2.contourArea(c)
-            if cArea > biggest_area:
-                biggest_area = cArea
+            contour_area = cv2.contourArea(c)
+            if contour_area > biggest_area:
+                biggest_area = contour_area
                 (x, y, w, h) = cv2.boundingRect(c)
                 cx = int(x + w / 2)  # x center point of contour
                 cy = int(y + h / 2)  # y center point of contour
@@ -1606,15 +1606,15 @@ def addFilepathSeq(file_path, seq_num):
 
 
 # ------------------------------------------------------------------------------
-def takePantiltSequence(file_name, day_mode, num_count, num_path, im_data):
+def takePantiltSequence(file_name, DAY_MODE, num_count, num_path, im_data):
     """
     Take a sequence of images based on a list of pantilt positions and save with
     a sequence number appended to the file_name
     """
 
-    if (not day_mode) and PANTILT_SEQ_DAYONLY_ON:
-        logging.info('Skip since PANTILT_SEQ_DAYONLY_ON = %s and day_mode = %s',
-                     PANTILT_SEQ_DAYONLY_ON, day_mode)
+    if (not DAY_MODE) and PANTILT_SEQ_DAYONLY_ON:
+        logging.info('Skip since PANTILT_SEQ_DAYONLY_ON = %s and DAY_MODE = %s',
+                     PANTILT_SEQ_DAYONLY_ON, DAY_MODE)
         return
     elif not PANTILT_ON:
         logging.error(f'takePantiltSequence Requires PANTILT_ON=True. Edit in Config.py')
@@ -1653,7 +1653,7 @@ def takePantiltSequence(file_name, day_mode, num_count, num_path, im_data):
                 MOTION_NUM_RECYCLE_ON,
                 NUM_PATH_MOTION,
                 seq_filepath,
-                day_mode,
+                DAY_MODE,
             )
             saveRecent(
                 MOTION_NUM_MAX,
@@ -1671,7 +1671,7 @@ def takePantiltSequence(file_name, day_mode, num_count, num_path, im_data):
                 PANTILT_SEQ_NUM_RECYCLE_ON,
                 NUM_PATH_PANTILT_SEQ,
                 seq_filepath,
-                day_mode,
+                DAY_MODE,
             )
             saveRecent(
                 PANTILT_SEQ_NUM_MAX,
@@ -1694,7 +1694,7 @@ def takePantiltSequence(file_name, day_mode, num_count, num_path, im_data):
 
 
 # ------------------------------------------------------------------------------
-def takePano(pano_seq_num, day_mode, im_data):
+def takePano(pano_seq_num, DAY_MODE, im_data):
     """
     Take a series of overlapping images using pantilt at specified PANO_CAM_STOPS
     then attempt to stitch the images into one panoramic image. Note this
@@ -1707,9 +1707,9 @@ def takePano(pano_seq_num, day_mode, im_data):
     Review pano source image overlap using webserver. Adjust pano stops accordingly.
     """
 
-    if (not day_mode) and PANO_DAYONLY_ON:
-        logging.info('Skip since PANO_DAYONLY_ON = %s and day_mode = %s',
-                     PANO_DAYONLY_ON, day_mode)
+    if (not DAY_MODE) and PANO_DAYONLY_ON:
+        logging.info('Skip since PANO_DAYONLY_ON = %s and DAY_MODE = %s',
+                     PANO_DAYONLY_ON, DAY_MODE)
         return
 
     print("")
@@ -1922,7 +1922,7 @@ def timolo():
     mo_cnt = None
     tl_cnt = None
 
-    day_mode = False  # Keep track of night and day based on dayPixAve
+    DAY_MODE = False  # Keep track of night and day based on dayPixAve
 
     motion_found = False
     take_timelapse = True
@@ -1934,7 +1934,7 @@ def timolo():
     pix_ave_timer = datetime.datetime.now()
     pantilt_seq_timer = datetime.datetime.now()
     motion_force_timer = datetime.datetime.now()
-    timelapseExitStart = datetime.datetime.now()
+    timelapse_exit_start = datetime.datetime.now()
     start_timelapse = getSchedStart(TIMELAPSE_START_AT)
     start_motion = getSchedStart(MOTION_START_AT)
     track_length = 0.0
@@ -1988,21 +1988,21 @@ def timolo():
         if MOTION_NUM_ON:
             motion_num_count = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
             mo_cnt = str(motion_num_count)
-        trackTimeout = time.time()
-        trackTimer = TRACK_TIMEOUT
-        startPos = []
+        track_timeout = time.time()
+        track_timer = TRACK_TIMEOUT
+        mo_start_pos = []
         start_track = False
-        image_1 = vs.read()
-        image_2 = vs.read()
-        grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
-        day_mode = checkIfDayStream(day_mode, image_2)
+        image1 = vs.read()
+        image2 = vs.read()
+        grayimage1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+        DAY_MODE = checkIfDayStream(DAY_MODE, image2)
     else:
         vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                        vflip=IMAGE_VFLIP,
                        hflip=IMAGE_HFLIP).start()
         time.sleep(0.5)
-        image_2 = vs.read()  # use video stream to check for px_ave using image_2 & day_mode
-        day_mode = checkIfDayStream(day_mode, image_2)
+        image2 = vs.read()  # use video stream to check for px_ave using image2 & DAY_MODE
+        DAY_MODE = checkIfDayStream(DAY_MODE, image2)
         vs.stop()
         time.sleep(STREAM_STOP_SEC)
         logging.info(
@@ -2082,32 +2082,32 @@ def timolo():
             last_space_check = freeDiskSpaceCheck(last_space_check)
         # check the timer for measuring pixel average of stream image frame
         pix_ave_timer, take_pix_ave = checkTimer(pix_ave_timer, IMAGE_PIX_AVE_TIMER_SEC)
-        # use image_2 to check day_mode as image_1 may be average
-        # that changes slowly, and image_1 may not be updated
+        # use image2 to check DAY_MODE as image1 may be average
+        # that changes slowly, and image1 may not be updated
         if take_pix_ave:
-            day_mode = checkIfDayStream(day_mode, image_2)
-            if day_mode != checkIfDayStream(day_mode, image_2):
-                day_mode = not day_mode
+            DAY_MODE = checkIfDayStream(DAY_MODE, image2)
+            if DAY_MODE != checkIfDayStream(DAY_MODE, image2):
+                DAY_MODE = not DAY_MODE
         if MOTION_TRACK_ON:
-            if day_mode != checkIfDayStream(day_mode, image_2):
-                day_mode = not day_mode
-                image_2 = vs.read()
-                image_1 = image_2
+            if DAY_MODE != checkIfDayStream(DAY_MODE, image2):
+                DAY_MODE = not DAY_MODE
+                image2 = vs.read()
+                image1 = image2
             else:
-                image_2 = vs.read()
+                image2 = vs.read()
         elif TIMELAPSE_ON:
             vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                            vflip=IMAGE_VFLIP,
                            hflip=IMAGE_HFLIP).start()
             time.sleep(0.5)
-            image_2 = vs.read()  # use video stream to check for day_mode
+            image2 = vs.read()  # use video stream to check for DAY_MODE
             vs.stop()
             time.sleep(STREAM_STOP_SEC)
-        if not day_mode and TIMELAPSE_ON:
+        if not DAY_MODE and TIMELAPSE_ON:
             time.sleep(0.02)  # short delay to aviod high cpu usage at night
         # Don't take images if IMAGE_NO_NIGHT_SHOTS
         # or IMAGE_NO_DAY_SHOTS settings are True
-        if not timeToSleep(day_mode):
+        if not timeToSleep(DAY_MODE):
             # Check if it is time for pantilt sequence
             if PANTILT_ON and PANTILT_SEQ_ON:
                 pantilt_seq_timer, take_pantilt_sequence = checkTimer(
@@ -2126,10 +2126,10 @@ def timolo():
                                                 PANTILT_SEQ_NUM_ON,
                                                 seq_num_count,
                                                 )
-                    seq_num_count = takePantiltSequence(file_name, day_mode,
+                    seq_num_count = takePantiltSequence(file_name, DAY_MODE,
                                                         seq_num_count,
                                                         NUM_PATH_PANTILT_SEQ,
-                                                        image_2
+                                                        image2
                                                         )
                     if MOTION_TRACK_ON:
                         logging.info("Restart picamera2 VideoStream Thread ...")
@@ -2162,7 +2162,7 @@ def timolo():
                     )
                 if (not stop_timelapse) and take_timelapse and TIMELAPSE_EXIT_SEC > 0:
                     if (
-                        datetime.datetime.now() - timelapseExitStart
+                        datetime.datetime.now() - timelapse_exit_start
                     ).total_seconds() > TIMELAPSE_EXIT_SEC:
                         logging.info(
                             "TIMELAPSE_EXIT_SEC=%i Exceeded.", TIMELAPSE_EXIT_SEC
@@ -2204,44 +2204,44 @@ def timolo():
                     if PLUGIN_ON:
                         if TIMELAPSE_EXIT_SEC > 0:
                             exitSecProgress = (
-                                datetime.datetime.now() - timelapseExitStart
+                                datetime.datetime.now() - timelapse_exit_start
                             ).total_seconds()
                             logging.info(
-                                "%s Sched TimeLapse  day_mode=%s  Timer=%i sec"
+                                "%s Sched TimeLapse  DAY_MODE=%s  Timer=%i sec"
                                 "  ExitSec=%i/%i Status",
                                 PLUGIN_NAME,
-                                day_mode,
+                                DAY_MODE,
                                 TIMELAPSE_TIMER_SEC,
                                 exitSecProgress,
                                 TIMELAPSE_EXIT_SEC,
                             )
                         else:
                             logging.info(
-                                "%s Sched TimeLapse  day_mode=%s"
+                                "%s Sched TimeLapse  DAY_MODE=%s"
                                 "  Timer=%i sec  ExitSec=%i 0=Continuous",
                                 PLUGIN_NAME,
-                                day_mode,
+                                DAY_MODE,
                                 TIMELAPSE_TIMER_SEC,
                                 TIMELAPSE_EXIT_SEC,
                             )
                     else:
                         if TIMELAPSE_EXIT_SEC > 0:
                             exitSecProgress = (
-                                datetime.datetime.now() - timelapseExitStart
+                                datetime.datetime.now() - timelapse_exit_start
                             ).total_seconds()
                             logging.info(
-                                "Sched TimeLapse  day_mode=%s  Timer=%i sec"
+                                "Sched TimeLapse  DAY_MODE=%s  Timer=%i sec"
                                 "  ExitSec=%i/%i Status",
-                                day_mode,
+                                DAY_MODE,
                                 TIMELAPSE_TIMER_SEC,
                                 exitSecProgress,
                                 TIMELAPSE_EXIT_SEC,
                             )
                         else:
                             logging.info(
-                                "Sched TimeLapse  day_mode=%s  Timer=%i sec"
+                                "Sched TimeLapse  DAY_MODE=%s  Timer=%i sec"
                                 "  ExitSec=%i 0=Continuous",
-                                day_mode,
+                                DAY_MODE,
                                 TIMELAPSE_TIMER_SEC,
                                 TIMELAPSE_EXIT_SEC,
                             )
@@ -2255,7 +2255,7 @@ def timolo():
                         vs.stop()
                         time.sleep(STREAM_STOP_SEC)
                     # Time to take a Day or Night Time Lapse Image
-                    takeImage(file_name, image_2)
+                    takeImage(file_name, image2)
                     timelapse_num_count = postImageProcessing(
                         TIMELAPSE_NUM_ON,
                         TIMELAPSE_NUM_START,
@@ -2264,7 +2264,7 @@ def timolo():
                         TIMELAPSE_NUM_RECYCLE_ON,
                         NUM_PATH_TIMELAPSE,
                         file_name,
-                        day_mode,
+                        DAY_MODE,
                     )
                     saveRecent(
                         TIMELAPSE_RECENT_MAX, TIMELAPSE_RECENT_DIR, file_name, tl_prefix
@@ -2305,28 +2305,28 @@ def timolo():
             ):
                 # IMPORTANT - Night motion tracking may not work very well
                 #             due to long exposure times and low light
-                image_2 = vs.read()
-                grayimage_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
-                movePoint1 = getMotionTrackPoint(grayimage_1, grayimage_2)
-                grayimage_1 = grayimage_2
+                image2 = vs.read()
+                grayimage2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+                movePoint1 = getMotionTrackPoint(grayimage1, grayimage2)
+                grayimage1 = grayimage2
                 if movePoint1 and not start_track:
                     start_track = True
-                    trackTimeout = time.time()
-                    startPos = movePoint1
-                image_2 = vs.read()
-                grayimage_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
-                move_point2 = getMotionTrackPoint(grayimage_1, grayimage_2)
+                    track_timeout = time.time()
+                    mo_start_pos = movePoint1
+                image2 = vs.read()
+                grayimage2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+                move_point2 = getMotionTrackPoint(grayimage1, grayimage2)
                 if move_point2 and start_track:  # Two sets of movement required
-                    track_length = trackMotionDistance(startPos, move_point2)
+                    track_length = trackMotionDistance(mo_start_pos, move_point2)
                     # wait until track well started
                     if track_length > TRACK_TRIG_LEN_MIN:
                         # Reset tracking timer object moved
-                        trackTimeout = time.time()
+                        track_timeout = time.time()
                         if MOTION_TRACK_INFO_ON:
                             logging.info(
                                 "Track Progress From(%i,%i) To(%i,%i) track_length=%i/%i px",
-                                startPos[0],
-                                startPos[1],
+                                mo_start_pos[0],
+                                mo_start_pos[1],
                                 move_point2[0],
                                 move_point2[1],
                                 track_length,
@@ -2350,8 +2350,8 @@ def timolo():
                                     "%s Motion Triggered Start(%i,%i)"
                                     "  End(%i,%i) track_length=%.i/%i px",
                                     PLUGIN_NAME,
-                                    startPos[0],
-                                    startPos[1],
+                                    mo_start_pos[0],
+                                    mo_start_pos[1],
                                     move_point2[0],
                                     move_point2[1],
                                     track_length,
@@ -2361,33 +2361,33 @@ def timolo():
                                 logging.info(
                                     "Motion Triggered Start(%i,%i)"
                                     "  End(%i,%i) track_length=%i/%i px",
-                                    startPos[0],
-                                    startPos[1],
+                                    mo_start_pos[0],
+                                    mo_start_pos[1],
                                     move_point2[0],
                                     move_point2[1],
                                     track_length,
                                     TRACK_TRIG_LEN,
                                 )
                             print("")
-                        image_1 = vs.read()
-                        image_2 = image_1
-                        grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
-                        grayimage_2 = grayimage_1
+                        image1 = vs.read()
+                        image2 = image1
+                        grayimage1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+                        grayimage2 = grayimage1
                         start_track = False
-                        startPos = []
+                        mo_start_pos = []
                         track_length = 0.0
                 # Track timed out
-                if (time.time() - trackTimeout > trackTimer) and start_track:
-                    image_1 = vs.read()
-                    image_2 = image_1
-                    grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
-                    grayimage_2 = grayimage_1
+                if (time.time() - track_timeout > track_timer) and start_track:
+                    image1 = vs.read()
+                    image2 = image1
+                    grayimage1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+                    grayimage2 = grayimage1
                     if MOTION_TRACK_ON and MOTION_TRACK_INFO_ON:
                         logging.info(
-                            "Track Timer %.2f sec Exceeded. Reset Track", trackTimer
+                            "Track Timer %.2f sec Exceeded. Reset Track", track_timer
                         )
                     start_track = False
-                    startPos = []
+                    mo_start_pos = []
                     track_length = 0.0
                 if MOTION_FORCE_SEC > 0:
                     motion_force_timer, motion_force_start = checkTimer(
@@ -2396,10 +2396,10 @@ def timolo():
                 else:
                     motion_force_start = False
                 if motion_force_start:
-                    image_1 = vs.read()
-                    image_2 = image_1
-                    grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
-                    grayimage_2 = grayimage_1
+                    image1 = vs.read()
+                    image2 = image1
+                    grayimage1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+                    grayimage2 = grayimage1
                     logging.info(
                         "No Motion Detected for %s minutes. "
                         "Taking Forced Motion Image.",
@@ -2415,7 +2415,7 @@ def timolo():
 
                     # Save stream image frame to capture movement quickly
                     if MOTION_TRACK_QUICK_PIC_ON:
-                        takeMotionQuickImage(image_2, file_name)
+                        takeMotionQuickImage(image2, file_name)
                         motion_num_count = postImageProcessing(
                             MOTION_NUM_ON,
                             MOTION_NUM_START,
@@ -2424,7 +2424,7 @@ def timolo():
                             MOTION_NUM_RECYCLE_ON,
                             NUM_PATH_MOTION,
                             file_name,
-                            day_mode,
+                            DAY_MODE,
                         )
                         saveRecent(
                             MOTION_RECENT_MAX,
@@ -2433,21 +2433,21 @@ def timolo():
                             motion_prefix,
                         )
                     # Save a series of images per settings (no pantilt)
-                    elif MOTION_TRACK_MINI_TL_ON and day_mode:
+                    elif MOTION_TRACK_MINI_TL_ON and DAY_MODE:
                         takeMiniTimelapse(
                             mo_path,
                             motion_prefix,
                             MOTION_NUM_ON,
                             motion_num_count,
-                            day_mode,
-                            image_2)
+                            DAY_MODE,
+                            image2)
 
                     # Move camera pantilt through specified positions and take images
                     elif (MOTION_TRACK_ON and PANTILT_ON and MOTION_TRACK_PANTILT_SEQ_ON):
-                        motion_num_count = takePantiltSequence(file_name, day_mode,
+                        motion_num_count = takePantiltSequence(file_name, DAY_MODE,
                                                                motion_num_count,
                                                                NUM_PATH_MOTION,
-                                                               image_2)
+                                                               image2)
                         pantiltGoHome()
                     elif MOTION_VIDEO_ON:
                         file_name = getVideoName(
@@ -2464,7 +2464,7 @@ def timolo():
                             motion_num_count += 1
                             writeCounter(motion_num_count, NUM_PATH_MOTION)
                     else:
-                        takeImage(file_name, image_2)
+                        takeImage(file_name, image2)
                         motion_num_count = postImageProcessing(
                             MOTION_NUM_ON,
                             MOTION_NUM_START,
@@ -2473,7 +2473,7 @@ def timolo():
                             MOTION_NUM_RECYCLE_ON,
                             NUM_PATH_MOTION,
                             file_name,
-                            day_mode,
+                            DAY_MODE,
                         )
 
                         saveRecent(
@@ -2487,13 +2487,13 @@ def timolo():
                                          vflip=IMAGE_VFLIP,
                                          hflip=IMAGE_HFLIP).start()
                     time.sleep(1)
-                    image_1 = vs.read()
-                    image_2 = image_1
-                    grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
-                    grayimage_2 = grayimage_1
+                    image1 = vs.read()
+                    image2 = image1
+                    grayimage1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+                    grayimage2 = grayimage1
                     track_length = 0.0
-                    trackTimeout = time.time()
-                    startPos = []
+                    track_timeout = time.time()
+                    mo_start_pos = []
                     start_track = False
                     mo_path = subDirChecks(
                         MOTION_SUBDIR_MAX_HOURS,
@@ -2521,7 +2521,7 @@ def timolo():
                         logging.info("Stop Motion Tracking picamera2 VideoStream ...")
                         vs.stop()
                         time.sleep(STREAM_STOP_SEC)
-                    pano_seq_num = takePano(pano_seq_num, day_mode, image_2)
+                    pano_seq_num = takePano(pano_seq_num, DAY_MODE, image2)
                     if MOTION_TRACK_ON:
                         logging.info("Restart Motion Tracking picamera2 VideoStream Thread ...")
                         vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
