@@ -71,7 +71,6 @@ TIMELAPSE_DIR = "media/timelapse" # Default= "media/timelapse"  Storage Folder P
 TIMELAPSE_RECENT_DIR = "media/recent/timelapse"  # Default= "media/recent/timelapse"  location of timelapse recent files
 TIMELAPSE_RECENT_MAX = 200    # Default= 200 0=Off or specify number of most recent files in TIMELAPSE_RECENT_DIR
 TIMELAPSE_START_AT = ""       # Default= "" Off or specify date/time to Start Sequence Eg "01-dec-2019 08:00:00" or "20:00:00"
-TIMELAPSE_CAM_SLEEP_SEC = 4.0 # Default= 4.0 seconds day sleep so camera can measure AWB before taking photo
 TIMELAPSE_NUM_ON = True       # Default= True filenames Sequenced by Number False=filenames by date/time
 TIMELAPSE_NUM_RECYCLE_ON = True # Default= True Restart Numbering at NumStart  False= Surpress Timelapse at NumMax
 TIMELAPSE_NUM_START = 1000    # Default= 1000 Start of timelapse number sequence
@@ -101,7 +100,6 @@ MOTION_NUM_RECYCLE_ON = True # Default= True when NumMax reached restart at NumS
 MOTION_NUM_START = 1000      # Default= 1000 Start 0f motion number sequence
 MOTION_NUM_MAX  = 2000       # Default= 2000 Max number of motion images desired. 0=Continuous
 MOTION_FORCE_SEC = 3600      # Default= 3600 seconds (1 hr) OFF=0  Force an image if no Motion Detected in specified seconds.
-MOTION_CAM_SLEEP = 0.7       # Default= 0.7 Sec of day sleep so camera can measure AWB before taking photo
 MOTION_SUBDIR_MAX_FILES = 0  # Default= 0 0=Off or specify Max Files to create new sub-folder if MAX FILES exceeded
 MOTION_SUBDIR_MAX_HOURS = 0  # Default= 0 0=Off or specify Max Hrs to create new sub-folder if MAX HOURS exceeded
 
@@ -132,7 +130,6 @@ PANTILT_ON = False          # Default= False Off, True= Enable Pan Tilt Hat Hard
 PANTILT_IS_PIMORONI = True  # Default= True Use Pimoroni pantilehat, False= Use Waveshare pantilthat
 PANTILT_HOME = (0, 0)       # Default= (0, -10) Pan Tilt Home Postion. Values between -90 and + 90
 PANTILT_SLEEP_SEC = 0.1     # Default= 0.1 Allow time for pantilt servos to move
-PANTILT_SPEED = 0.5
 
 # Settings for pantilt image sequence
 # Can also be triggerd by Motion if

@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.10"  # Requires Latest 12.5 release of config.py
+PROG_VER = "ver 13.11"  # Requires Latest 12.5 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 
 import os
@@ -37,6 +37,7 @@ import shutil
 import glob
 import time
 import math
+import logging
 import numpy as np
 from PIL import Image
 from PIL import ImageFont
@@ -45,7 +46,7 @@ from picamera2.encoders import H264Encoder, Quality
 from picamera2.outputs import FfmpegOutput
 from picamera2 import Picamera2, Preview
 from libcamera import controls, Transform
-import logging
+
 
 # Disable picamera2 and libcamera logging. Some DEBUG messages may still appear
 logging.getLogger('picamera2').setLevel(logging.CRITICAL)
@@ -134,7 +135,6 @@ default_settings = {
     "TIMELAPSE_PREFIX": "tl-",
     "TIMELAPSE_START_AT": "",
     "TIMELAPSE_TIMER_SEC": 300,
-    "TIMELAPSE_CAM_SLEEP_SEC": 4.0,
     "TIMELAPSE_NUM_ON": True,
     "TIMELAPSE_NUM_RECYCLE_ON": True,
     "TIMELAPSE_NUM_START": 1000,
@@ -173,7 +173,6 @@ default_settings = {
     "MOTION_SUBDIR_MAX_HOURS": 0,
     "MOTION_RECENT_MAX": 200,
     "MOTION_RECENT_DIR": "media/recent/motion",
-    "MOTION_CAM_SLEEP": 0.7,
     "VIDEO_REPEAT_ON": False,
     "VIDEO_REPEAT_WIDTH": 1280,
     "VIDEO_REPEAT_HEIGHT": 720,
@@ -190,7 +189,6 @@ default_settings = {
     "PANTILT_ON": False,
     "PANTILT_IS_PIMORONI": False,
     "PANTILT_HOME": (0, -10),
-    "PANTILT_SPEED": 0.5,
     "PANTILT_SEQ_ON": False,
     "PANTILT_SEQ_TIMER_SEC": 600,
     "PANTILT_SEQ_IMAGES_DIR": "media/pantilt_seq",
@@ -338,7 +336,7 @@ if PANTILT_ON:
             print("Change value of variable per below. ctrl-x y to save and exit")
             print("    PANTILT_IS_PIMORONI = False")
             sys.exit()
-        pantilt_is = "Pimoroni"
+        PANTILT_IS = "Pimoroni"
     else:
         try:
             # import pantilthat
@@ -359,7 +357,7 @@ if PANTILT_ON:
             print("Change value of variable per below. ctrl-x y to save and exit")
             print("    PANTILT_IS_PIMORONI = True")
             sys.exit()
-        pantilt_is = "Waveshare"
+        PANTILT_IS = "Waveshare"
 
 
 # Check for user_motion_code.py file to import and error out if not found.
@@ -374,11 +372,11 @@ if not os.path.isfile(user_motion_filepath):
 else:
     # Read Configuration variables from config.py file
     try:
-        motionCode = True
+        MOTION_CODE = True
         import user_motion_code
     except ImportError:
         print("WARN  : Failed Import of File user_motion_code.py Investigate Problem")
-        motionCode = False
+        MOTION_CODE = False
         WARN_ON = True
 
 # Give some time to read any warnings
@@ -399,7 +397,7 @@ except ImportError:
         logging.error("Failed to import cv2 for python2")
         logging.error("Try reinstalling per command")
         logging.error("sudo apt-get install python-opencv")
-    logging.error(f"Exiting {PROG_NAME} {PROG_VER} Due to Error")
+    logging.error("Exiting %s %s Due to Error", PROG_NAME, PROG_VER)
     sys.exit(1)
 
 # import Stream Frame Thread Library
@@ -412,7 +410,7 @@ except ImportError:
         logging.error("sudo apt install -y python3-picamera2")
     else:
         logging.error("sudo apt install -y python3-picamera2")
-    logging.error(f"Exiting {PROG_NAME} {PROG_VER} Due to Error")
+    logging.error("Exiting %s %s Due to Error", PROG_NAME, PROG_VER)
     sys.exit(1)
 
 
@@ -422,20 +420,20 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
     # Check if there is a .py at the end of PLUGIN_NAME variable
     if PLUGIN_NAME.endswith(".py"):
         PLUGIN_NAME = PLUGIN_NAME[:-3]  # Remove .py extensiion
-    pluginPath = os.path.join(pluginDir, PLUGIN_NAME + ".py")
-    logging.info(f"pluginEnabled - loading PLUGIN_NAME {pluginPath}")
+    plugin_path = os.path.join(pluginDir, PLUGIN_NAME + ".py")
+    logging.info("pluginEnabled - loading PLUGIN_NAME %s ", plugin_path)
     if not os.path.isdir(pluginDir):
-        logging.error(f"plugin Directory Not Found at {pluginDir}")
+        logging.error("plugin Directory Not Found at %s", pluginDir)
         logging.error("Rerun github curl install script to install plugins")
         logging.error(
             "https://github.com/pageauc/pi-timolo/wiki/"
             "How-to-Install-or-Upgrade#quick-install"
         )
-        logging.error(f"Exiting {PROG_NAME} {PROG_VER} Due to Error")
+        logging.error("Exiting %s %s Due to Error", PROG_NAME, PROG_VER)
         sys.exit(1)
-    elif not os.path.isfile(pluginPath):
-        logging.error(f"File Not Found PLUGIN_NAME {pluginPath}")
-        logging.error(f"Check Spelling of PLUGIN_NAME Value in {config_file_path}")
+    elif not os.path.isfile(plugin_path):
+        logging.error("File Not Found PLUGIN_NAME %s", plugin_path)
+        logging.error("Check Spelling of PLUGIN_NAME Value in %s", config_file_path)
         logging.error("------- Valid Names -------")
         validPlugin = glob.glob(pluginDir + "/*py")
         validPlugin.sort()
@@ -443,7 +441,7 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
             pluginFile = os.path.basename(entry)
             plugin = pluginFile.rsplit(".", 1)[0]
             if not ((plugin == "__init__") or (plugin == "current")):
-                logging.error(f"        {plugin}")
+                logging.error("        %s", plugin )
         logging.error("------- End of List -------")
         logging.error("Note: PLUGIN_NAME Should Not have .py Ending.")
         logging.error("or Rerun github curl install command.  See github wiki")
@@ -451,27 +449,27 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
             "https://github.com/pageauc/pi-timolo/wiki/"
             "How-to-Install-or-Upgrade#quick-install"
         )
-        logging.error(f"Exiting {PROG_NAME} {PROG_VER} Due to Error")
+        logging.error("Exiting %s %s Due to Error", PROG_NAME, PROG_VER)
         sys.exit(1)
     else:
-        pluginCurrent = os.path.join(pluginDir, "current.py")
+        plugin_current = os.path.join(pluginDir, "current.py")
         try:  # Copy image file to recent folder
-            logging.info(f"Copy {pluginPath} to {pluginCurrent}")
-            shutil.copy(pluginPath, pluginCurrent)
+            logging.info("Copy %s to %s", plugin_path, plugin_current)
+            shutil.copy(plugin_path, plugin_current)
         except OSError as err_msg:
             logging.error(
-                "Copy Failed from %s to %s - %s", pluginPath, pluginCurrent, err_msg
+                "Copy Failed from %s to %s - %s", plugin_path, plugin_current, err_msg
             )
             logging.error("Check permissions, disk space, Etc.")
-            logging.error(f"Exiting {PROG_NAME} {PROG_VER} Due to Error")
+            logging.error("Exiting %s %s Due to Error", PROG_NAME, PROG_VER)
             sys.exit(1)
-        logging.info("Import Plugin %s", pluginPath)
+        logging.info("Import Plugin %s", plugin_path)
         sys.path.insert(0, pluginDir)  # add plugin Directory to program PATH
         from plugins.current import *
 
         try:
-            if os.path.isfile(pluginCurrent):
-                os.remove(pluginCurrent)
+            if os.path.isfile(plugin_current):
+                os.remove(plugin_current)
             pluginCurrentpyc = os.path.join(pluginDir, "current.pyc")
             if os.path.isfile(pluginCurrentpyc):
                 os.remove(pluginCurrentpyc)
@@ -556,7 +554,7 @@ def piCamFound():
                 else:
                     pi_sensor = "Unknown"
                     pi_ver = "Unknown"
-                logging.info(f"Sensor: {sensor} Ver: {pi_ver} RPI Camera module")
+                logging.info("Sensor: %s Ver: %s RPI Camera module", pi_sensor, pi_ver)
                 return True
             else:
                 logging.error("No sensor information Found.")
@@ -588,7 +586,7 @@ def getMaxResolution():
                         break
             # this is not used due to break above.  Rethinking
             if max_resolution:
-                logging.info(f"{max_resolution}")
+                logging.info("%s",max_resolution )
                 cam_resolution = max_resolution.split('x')
                 try:
                     im_W = int(cam_resolution[0])
@@ -658,7 +656,7 @@ def checkConfig():
             % (MOTION_TRACK_ON, TIMELAPSE_ON, PANTILT_SEQ_ON, PANO_ON, VIDEO_REPEAT_ON)
         )
         if VERBOSE_ON:
-            logging.error(error_ext)
+            logging.error("%s", error_ext)
         else:
             sys.stdout.write(error_ext)
         sys.exit(1)
@@ -708,7 +706,7 @@ def createSubdir(dir_name, filename_prefix):
             )
             sub_dir_path = dir_name
         else:
-            logging.info(f"Created {sub_dir_path}")
+            logging.info("Created %s", sub_dir_path)
     else:
         sub_dir_path = dir_name
     return sub_dir_path
@@ -721,7 +719,7 @@ def subDirCheckMaxFiles(dir_name, files_max):
     count = len(file_list)
     if count > files_max:
         make_new_dir = True
-        logging.info(f"Total Files in {dir_name} Exceeds {files_max}")
+        logging.info("Total Files in %s Exceeds %i", dir_name, files_max)
     else:
         make_new_dir = False
     return make_new_dir
@@ -744,7 +742,7 @@ def subDirCheckMaxHrs(dir_name, hrs_max, filename_prefix):
     dir_age_hours = float(days * 24 + (seconds / 3600.0))  # convert to hours
     if dir_age_hours > hrs_max:  # See if hours are exceeded
         make_new_dir = True
-        logging.info(f"MaxHrs {dir_age_hours} Exceeds {hrs_max} for {dir_name}")
+        logging.info("MaxHrs {dir_age_hours} Exceeds {hrs_max} for {dir_name}")
     else:
         make_new_dir = False
     return make_new_dir
@@ -759,7 +757,7 @@ def subDirChecks(max_hours, max_files, dir_name, filename_prefix):
     else:
         sub_dir_path = getLastSubdir(dir_name)
         if sub_dir_path == dir_name:  # No subDir Found
-            logging.info(f"No sub folders Found in {dir_name}")
+            logging.info("No sub folders Found in %s",dir_name )
             sub_dir_path = createSubdir(dir_name, filename_prefix)
         # Check MaxHours Folder Age Only
         elif max_hours > 0 and max_files < 1:
@@ -773,7 +771,7 @@ def subDirChecks(max_hours, max_files, dir_name, filename_prefix):
                 if subDirCheckMaxFiles(sub_dir_path, max_files):
                     sub_dir_path = createSubdir(dir_name, filename_prefix)
                 else:
-                    logging.info(f"max_files Not Exceeded in {sub_dir_path}")
+                    logging.info("max_files %i Not Exceeded in %s", max_files, sub_dir_path)
     os.path.abspath(sub_dir_path)
     return sub_dir_path
 
@@ -884,7 +882,7 @@ def makeRelSymlink(sourcefile_namePath, symDestDir):
     if os.path.islink(symDestFilePath):
         logging.info(f"Saved at {symDestFilePath}")
     else:
-        logging.warning(f"Failed to Create Symlink at {symDestFilePath}")
+        logging.warning("Failed to Create Symlink at %s", symDestFilePath)
 
 
 # ------------------------------------------------------------------------------
@@ -993,28 +991,28 @@ def freeDiskSpaceCheck(lastSpaceCheck):
 
 
 # ------------------------------------------------------------------------------
-def getCurrentCount(numberpath, numberstart):
+def getCurrentCount(number_path, number_start):
     """
     Create a .dat file to store currentCount
     or read file if it already Exists
     """
-    if not os.path.isfile(numberpath):
+    if not os.path.isfile(number_path):
         # Create numberPath file if it does not exist
-        logging.info("Creating New File %s numberstart= %s", numberpath, numberstart)
-        open(numberpath, "w").close()
-        f = open(numberpath, "w+")
-        f.write(str(numberstart))
+        logging.info(f"Creating New File {number_path} number_start= {number_start}")
+        open(number_path, "w").close()
+        f = open(number_path, "w+")
+        f.write(str(number_start))
         f.close()
     # Read the numberPath file to get the last sequence number
-    with open(numberpath, "r") as f:
-        writeCount = f.read()
+    with open(number_path, "r") as f:
+        write_count = f.read()
         f.closed
         try:
-            numbercounter = int(writeCount)
+            number_counter = int(write_count)
         # Found Corrupt dat file since cannot convert to integer
         except ValueError:
             # Try to determine if this is motion or timelapse
-            if numberpath.find(MOTION_PREFIX) > 0:
+            if number_path.find(MOTION_PREFIX) > 0:
                 filePath = MOTION_PATH + "/*" + IMAGE_FORMAT
                 fprefix = MOTION_PATH + MOTION_PREFIX + IMAGE_NAME_PREFIX
             else:
@@ -1024,26 +1022,24 @@ def getCurrentCount(numberpath, numberstart):
                 # Scan image folder for most recent file
                 # and try to extract most recent number counter
                 newest = max(glob.iglob(filePath), key=os.path.getctime)
-                writeCount = newest[len(fprefix) + 1 : newest.find(IMAGE_FORMAT)]
+                write_count = newest[len(fprefix) + 1 : newest.find(IMAGE_FORMAT)]
             except:
-                writeCount = numberstart
+                write_count = number_start
             try:
-                numbercounter = int(writeCount) + 1
+                number_counter = int(write_count) + 1
             except ValueError:
-                numbercounter = numberstart
+                number_counter = number_start
             logging.warning(
-                "Found Invalid Data in %s Resetting Counter to %s",
-                numberpath,
-                numbercounter,
+                f"Found Invalid Data in {number_path} Resetting Counter to {number_counter}",
             )
-        f = open(numberpath, "w+")
-        f.write(str(numbercounter))
+        f = open(number_path, "w+")
+        f.write(str(number_counter))
         f.close()
-        f = open(numberpath, "r")
-        writeCount = f.read()
+        f = open(number_path, "r")
+        write_count = f.read()
         f.close()
-        numbercounter = int(writeCount)
-    return numbercounter
+        number_counter = int(write_count)
+    return number_counter
 
 
 # ------------------------------------------------------------------------------
@@ -1273,7 +1269,7 @@ def saveRotatateImage(file_name, deg_rot):
         rot_image = image.rotate(deg_rot)
         rot_image.save(file_name)
     else:
-        logging.warning(f"Rotation {deg_rot} not valid.")
+        logging.warning("Rotation %i not valid.", deg_rot)
         logging.warning("Valid entries are None, 0, 90, 180, 270, -90, -180, -270")
 
 
@@ -1313,10 +1309,10 @@ def takeImage(file_path, im_data):
         except RuntimeError:
             retries += 1
             logging.warning('Camera Error. Could Not Configure')
-            logging.warning(f'Retry {retries} of {total_retries}')
+            logging.warning('Retry %i of %i', retries, total_retries)
             picam2.close()  # Close the camera instance
             if retries > total_retries:
-                logging.error('Retries Exceeded. Exiting Due to Camera Problem. ')
+                logging.error('Retries Exceeded. Exiting Due to Camera Problem.')
                 sys.exit(1)
             else:
                 time.sleep(4)
@@ -1577,6 +1573,7 @@ def takeVideo(file_name, vid_seconds, vid_W=1280, vid_H=720, vid_fps=25):
         time.sleep(vid_seconds)
         picam2.stop_recording()
         picam2.close()
+        time.sleep(2)  # allow time to close camera
         if MOTION_RECENT_MAX:
             logging.info(f"Saved Motion Tracking Video to {file_path_mp4}")
         else:
@@ -1918,8 +1915,6 @@ def timolo():
     initialization and logic loop
     """
 
-    cam_tl_pos = 0  # PANTILT_SEQ_STOPS List Start position of pantilt
-    pan_x, tilt_y = PANTILT_SEQ_STOPS[cam_tl_pos]
     checkMediaPaths()
     timelapse_num_count = 0
     motion_num_count = 0
@@ -1931,7 +1926,7 @@ def timolo():
 
     day_mode = False  # Keep track of night and day based on dayPixAve
 
-    motionFound = False
+    motion_found = False
     take_timelapse = True
     stop_timelapse = False
     takeMotion = True
@@ -1990,10 +1985,9 @@ def timolo():
         trackTimeout = time.time()
         trackTimer = TRACK_TIMEOUT
         startPos = []
-        startTrack = False
+        start_track = False
         image_1 = vs.read()
         image_2 = vs.read()
-        pixAve = getStreamPixAve(image_2)
         grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
         day_mode = checkIfDayStream(day_mode, image_2)
     else:
@@ -2001,8 +1995,7 @@ def timolo():
                        vflip=IMAGE_VFLIP,
                        hflip=IMAGE_HFLIP).start()
         time.sleep(0.5)
-        image_2 = vs.read()  # use video stream to check for pixAve & day_mode
-        pixAve = getStreamPixAve(image_2)
+        image_2 = vs.read()  # use video stream to check for px_ave using image_2 & day_mode
         day_mode = checkIfDayStream(day_mode, image_2)
         vs.stop()
         time.sleep(STREAM_STOP_SEC)
@@ -2045,7 +2038,7 @@ def timolo():
     first_pano = True  # Force a pano sequence on startup
     first_timelapse = True  # Force a timelapse on startup
     while True:  # Start main program Loop.
-        motionFound = False
+        motion_found = False
         if (MOTION_TRACK_ON
             and (not MOTION_NUM_RECYCLE_ON)
             and (motion_num_count > MOTION_NUM_START + MOTION_NUM_MAX)
@@ -2076,7 +2069,7 @@ def timolo():
                 "Change %s Settings or Archive/Save Media Then", CONFIG_FILENAME
             )
             logging.warning("Delete appropriate .dat File(s) to Reset Counter(s)")
-            logging.warning(f"Exiting {PROG_NAME} {PROG_VER} \n")
+            logging.warning("Exiting %s %s \n", PROG_NAME, PROG_VER)
             sys.exit(1)
         # if required check free disk space and delete older files (jpg)
         if SPACE_TIMER_HOURS > 0:
@@ -2086,8 +2079,6 @@ def timolo():
         # use image_2 to check day_mode as image_1 may be average
         # that changes slowly, and image_1 may not be updated
         if take_pix_ave:
-            pixAve = getStreamPixAve(image_2)
-            pixAve = getStreamPixAve(image_2)
             day_mode = checkIfDayStream(day_mode, image_2)
             if day_mode != checkIfDayStream(day_mode, image_2):
                 day_mode = not day_mode
@@ -2312,14 +2303,14 @@ def timolo():
                 grayimage_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
                 movePoint1 = getMotionTrackPoint(grayimage_1, grayimage_2)
                 grayimage_1 = grayimage_2
-                if movePoint1 and not startTrack:
-                    startTrack = True
+                if movePoint1 and not start_track:
+                    start_track = True
                     trackTimeout = time.time()
                     startPos = movePoint1
                 image_2 = vs.read()
                 grayimage_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
                 movePoint2 = getMotionTrackPoint(grayimage_1, grayimage_2)
-                if movePoint2 and startTrack:  # Two sets of movement required
+                if movePoint2 and start_track:  # Two sets of movement required
                     trackLen = trackMotionDistance(startPos, movePoint2)
                     # wait until track well started
                     if trackLen > TRACK_TRIG_LEN_MIN:
@@ -2339,7 +2330,7 @@ def timolo():
                     if trackLen >= TRACK_TRIG_LEN:
                         # reduce chance of two objects at different positions
                         if trackLen >= TRACK_TRIG_LEN_MAX:
-                            motionFound = False
+                            motion_found = False
                             if MOTION_TRACK_INFO_ON:
                                 logging.info(
                                     "TrackLen %i px Exceeded %i px Max Trig Len Allowed.",
@@ -2347,7 +2338,7 @@ def timolo():
                                     TRACK_TRIG_LEN_MAX,
                                 )
                         else:
-                            motionFound = True
+                            motion_found = True
                             if PLUGIN_ON:
                                 logging.info(
                                     "%s Motion Triggered Start(%i,%i)"
@@ -2376,11 +2367,11 @@ def timolo():
                         image_2 = image_1
                         grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
                         grayimage_2 = grayimage_1
-                        startTrack = False
+                        start_track = False
                         startPos = []
                         trackLen = 0.0
                 # Track timed out
-                if (time.time() - trackTimeout > trackTimer) and startTrack:
+                if (time.time() - trackTimeout > trackTimer) and start_track:
                     image_1 = vs.read()
                     image_2 = image_1
                     grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
@@ -2389,7 +2380,7 @@ def timolo():
                         logging.info(
                             "Track Timer %.2f sec Exceeded. Reset Track", trackTimer
                         )
-                    startTrack = False
+                    start_track = False
                     startPos = []
                     trackLen = 0.0
                 if MOTION_FORCE_SEC > 0:
@@ -2408,7 +2399,7 @@ def timolo():
                         "Taking Forced Motion Image.",
                         (MOTION_FORCE_SEC / 60),
                     )
-                if motionFound or motion_force_start:
+                if motion_found or motion_force_start:
                     motion_prefix = MOTION_PREFIX + IMAGE_NAME_PREFIX
                     file_name = getImagefile_name(
                         mo_path, motion_prefix, MOTION_NUM_ON, motion_num_count
@@ -2497,7 +2488,7 @@ def timolo():
                     trackLen = 0.0
                     trackTimeout = time.time()
                     startPos = []
-                    startTrack = False
+                    start_track = False
                     mo_path = subDirChecks(
                         MOTION_SUBDIR_MAX_HOURS,
                         MOTION_SUBDIR_MAX_FILES,
@@ -2541,7 +2532,7 @@ def timolo():
                     )
                     logging.info("Next Pano at %s  Waiting ...", next_pano_at)
 
-                if motionFound and motionCode:
+                if motion_found and MOTION_CODE:
                     # ===========================================
                     # Put your user code in userMotionCode() function
                     # In the File user_motion_code.py
@@ -2555,13 +2546,13 @@ def timolo():
                         )
 
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------b---------------------------
 if __name__ == "__main__":
 
     checkConfig()
 
     if PANTILT_ON:
-        logging.info("Camera Pantilt Hardware is %s", pantilt_is)
+        logging.info("Camera Pantilt Hardware is %s", PANTILT_IS)
     if PLUGIN_ON:
         logging.info(
             "Start pi-timolo per %s and plugins/%s.py Settings",
@@ -2583,14 +2574,13 @@ if __name__ == "__main__":
         pantiltGoHome()  # Ensure pantilt is returned to home position
         if VERBOSE_ON:
             logging.info("\nUser Pressed Keyboard ctrl-c")
-            logging.info(f"Exiting {PROG_NAME} {PROG_VER}")
         else:
             sys.stdout.write("User Pressed Keyboard ctrl-c \n")
-            sys.stdout.write(f"Exiting {PROG_NAME} {PROG_VER} \n")
+            sys.stdout.write("Exiting %s %s \n", PROG_NAME, PROG_VER)
     try:
         if PLUGIN_ON:
-            if os.path.isfile(pluginCurrent):
-                os.remove(pluginCurrent)
+            if os.path.isfile(plugin_current):
+                os.remove(plugin_current)
             pluginCurrentpyc = os.path.join(pluginDir, "current.pyc")
             if os.path.isfile(pluginCurrentpyc):
                 os.remove(pluginCurrentpyc)
