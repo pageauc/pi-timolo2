@@ -9,9 +9,9 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.11"  # Requires Latest 12.5 release of config.py
+PROG_VER = "ver 13.12"  # Requires Latest 12.5 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
-
+import logging
 import os
 os.environ["LIBCAMERA_LOG_LEVELS"]="FATAL"
 WARN_ON = False  # Add short delay to review warning messages
@@ -37,7 +37,6 @@ import shutil
 import glob
 import time
 import math
-import logging
 import numpy as np
 from PIL import Image
 from PIL import ImageFont
@@ -81,9 +80,9 @@ except ImportError:
     )
     print("      sudo apt install python3-py3exiv2 -y")
     WARN_ON = True
-except OSError as err_msg:
+except OSError as e:
     print("WARN  : Could Not import python3 pyexiv2 due to an Operating System Error")
-    print(f"        {err_msg}")
+    print(f"        {str(e)}")
     print("        Camera images will be missing exif meta data")
     WARN_ON = True
 
@@ -416,14 +415,14 @@ except ImportError:
 
 # Check if plugins are on and import as required
 if PLUGIN_ON:  # Check and verify plugin and load variable overlay
-    pluginDir = os.path.join(base_dir, "plugins")
+    plugin_dir = os.path.join(base_dir, "plugins")
     # Check if there is a .py at the end of PLUGIN_NAME variable
     if PLUGIN_NAME.endswith(".py"):
         PLUGIN_NAME = PLUGIN_NAME[:-3]  # Remove .py extensiion
-    plugin_path = os.path.join(pluginDir, PLUGIN_NAME + ".py")
+    plugin_path = os.path.join(plugin_dir, PLUGIN_NAME + ".py")
     logging.info("pluginEnabled - loading PLUGIN_NAME %s ", plugin_path)
-    if not os.path.isdir(pluginDir):
-        logging.error("plugin Directory Not Found at %s", pluginDir)
+    if not os.path.isdir(plugin_dir):
+        logging.error("plugin Directory Not Found at %s", plugin_dir)
         logging.error("Rerun github curl install script to install plugins")
         logging.error(
             "https://github.com/pageauc/pi-timolo/wiki/"
@@ -435,11 +434,11 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
         logging.error("File Not Found PLUGIN_NAME %s", plugin_path)
         logging.error("Check Spelling of PLUGIN_NAME Value in %s", config_file_path)
         logging.error("------- Valid Names -------")
-        validPlugin = glob.glob(pluginDir + "/*py")
-        validPlugin.sort()
-        for entry in validPlugin:
-            pluginFile = os.path.basename(entry)
-            plugin = pluginFile.rsplit(".", 1)[0]
+        valid_plugin = glob.glob(plugin_dir + "/*py")
+        valid_plugin.sort()
+        for entry in valid_plugin:
+            plugin_filename = os.path.basename(entry)
+            plugin = plugin_filename.rsplit(".", 1)[0]
             if not ((plugin == "__init__") or (plugin == "current")):
                 logging.error("        %s", plugin )
         logging.error("------- End of List -------")
@@ -452,29 +451,29 @@ if PLUGIN_ON:  # Check and verify plugin and load variable overlay
         logging.error("Exiting %s %s Due to Error", PROG_NAME, PROG_VER)
         sys.exit(1)
     else:
-        plugin_current = os.path.join(pluginDir, "current.py")
+        plugin_current = os.path.join(plugin_dir, "current.py")
         try:  # Copy image file to recent folder
             logging.info("Copy %s to %s", plugin_path, plugin_current)
             shutil.copy(plugin_path, plugin_current)
-        except OSError as err_msg:
+        except OSError as e:
             logging.error(
-                "Copy Failed from %s to %s - %s", plugin_path, plugin_current, err_msg
+                "Copy Failed from %s to %s - %s", plugin_path, plugin_current, str(e)
             )
             logging.error("Check permissions, disk space, Etc.")
             logging.error("Exiting %s %s Due to Error", PROG_NAME, PROG_VER)
             sys.exit(1)
         logging.info("Import Plugin %s", plugin_path)
-        sys.path.insert(0, pluginDir)  # add plugin Directory to program PATH
+        sys.path.insert(0, plugin_dir)  # add plugin Directory to program PATH
         from plugins.current import *
 
         try:
             if os.path.isfile(plugin_current):
                 os.remove(plugin_current)
-            pluginCurrentpyc = os.path.join(pluginDir, "current.pyc")
-            if os.path.isfile(pluginCurrentpyc):
-                os.remove(pluginCurrentpyc)
-        except OSError as err_msg:
-            logging.warning("Failed Removal of %s - %s", pluginCurrentpyc, err_msg)
+            plugin_current_pyc = os.path.join(plugin_dir, "current.pyc")
+            if os.path.isfile(plugin_current_pyc):
+                os.remove(plugin_current_pyc)
+        except OSError as e:
+            logging.warning("Failed Removal of %s - %s", plugin_current_pyc, str(e))
             time.sleep(5)
 else:
     logging.info("No Plugin Enabled per PLUGIN_ON=%s", PLUGIN_ON)
@@ -589,11 +588,11 @@ def getMaxResolution():
                 logging.info("%s",max_resolution )
                 cam_resolution = max_resolution.split('x')
                 try:
-                    im_W = int(cam_resolution[0])
-                    im_H = int(cam_resolution[1])
+                    im_w = int(cam_resolution[0])
+                    im_h = int(cam_resolution[1])
                 except ValueError:
                     return None
-                return (im_W, im_H)
+                return (im_w, im_h)
             logging.warning("No Max resolution information Found.")
             return None
         else:
@@ -615,9 +614,9 @@ else:
     sys.exit(1)
 
 # increase size of MOTION_TRACK_QUICK_PIC_ON image
-bigImage = MOTION_TRACK_QUICK_PIC_BIGGER
-bigImageWidth = int(STREAM_WIDTH * bigImage)
-bigImageHeight = int(STREAM_HEIGHT * bigImage)
+BIG_IMAGE = MOTION_TRACK_QUICK_PIC_BIGGER
+BIG_IMAGE_WIDTH = int(STREAM_WIDTH * BIG_IMAGE)
+BIG_IMAGE_HEIGHT = int(STREAM_HEIGHT * BIG_IMAGE)
 
 TRACK_TRIG_LEN = MOTION_TRACK_TRIG_LEN  # Pixels moved to trigger motion photo
 # Don't track progress until this Len reached.
@@ -698,11 +697,11 @@ def createSubdir(dir_name, filename_prefix):
     if not os.path.isdir(sub_dir_path):
         try:
             os.makedirs(sub_dir_path)
-        except OSError as err_msg:
+        except OSError as e:
             logging.error(
                 "Cannot Create Directory %s - %s, using default location.",
                 sub_dir_path,
-                err_msg,
+                str(e),
             )
             sub_dir_path = dir_name
         else:
@@ -782,11 +781,11 @@ def makeMediaDir(dir_path):
     make_dir = False
     if not os.path.isdir(dir_path):
         make_dir = True
-        logging.info(f"Create Folder {dir_path}")
+        logging.info("Create Folder %s", dir_path)
         try:
             os.makedirs(dir_path)
-        except OSError as err_msg:
-            logging.error(f"Could Not Create {dir_path}: {err_msg}")
+        except OSError as e:
+            logging.error("Could Not Create %s: %s", dir_path, str(e))
             sys.exit(1)
     return make_dir
 
@@ -832,57 +831,57 @@ def deleteOldFiles(max_files, dir_path, filename_prefix):
         file_list = sorted(
             glob.glob(os.path.join(dir_path, filename_prefix + "*")), key=os.path.getmtime
         )
-    except OSError as err_msg:
-        logging.error(f"Problem Reading Directory {dir_path} - {err_msg}")
+    except OSError as e:
+        logging.error("Problem Reading Directory %s: %s", dir_path, str(e))
     else:
         while len(file_list) >= max_files:
             oldest = file_list[0]
-            oldestFile = oldest
+            oldest_file = oldest
             try:  # Remove oldest file in recent folder
                 file_list.remove(oldest)
-                logging.info(f"{oldestFile}")
-                os.remove(oldestFile)
-            except OSError as err_msg:
-                logging.error(f"Failed {oldestFile}: {err_msg}")
+                logging.info(f"{oldest_file}")
+                os.remove(oldest_file)
+            except OSError as e:
+                logging.error("Failed %s: %s", oldest_file, str(e))
 
 
 # ------------------------------------------------------------------------------
 
-def makeRelSymlink(sourcefile_namePath, symDestDir):
+def makeRelSymlink(sourcefile_name_path, sym_dest_dir):
     '''
-    Creates a relative symlink in the specified symDestDir
+    Creates a relative symlink in the specified sym_dest_dir
     that points to the Target file via a relative rather than
     absolute path. If a symlink already exists it will be replaced.
     Warning message will be displayed if symlink path is a file
     rather than an existing symlink.
     '''
     # Initialize target and symlink file paths
-    targetDirPath = os.path.dirname(sourcefile_namePath)
-    srcfile_name = os.path.basename(sourcefile_namePath)
-    symDestFilePath = os.path.join(symDestDir, srcfile_name)
+    target_dir_path = os.path.dirname(sourcefile_name_path)
+    srcfile_name = os.path.basename(sourcefile_name_path)
+    sym_dest_file_path = os.path.join(sym_dest_dir, srcfile_name)
     # Check if symlink already exists and unlink if required.
-    if os.path.islink(symDestFilePath):
-        logging.info("Remove Existing Symlink at %s ", symDestFilePath)
-        os.unlink(symDestFilePath)
+    if os.path.islink(sym_dest_file_path):
+        logging.info("Remove Existing Symlink at %s ", sym_dest_file_path)
+        os.unlink(sym_dest_file_path)
     # Check if symlink path is a file rather than a symlink. Error out if required
-    if os.path.isfile(symDestFilePath):
-        logging.warning("Failed. File Exists at %s." % symDestFilePath)
+    if os.path.isfile(sym_dest_file_path):
+        logging.warning("Failed. File Exists at %s." % sym_dest_file_path)
         return
 
     # Initialize required entries for creating a relative symlink to target file
-    absTargetDirPath = os.path.abspath(targetDirPath)
-    absSymDirPath = os.path.abspath(symDestDir)
-    relativeDirPath = os.path.relpath(absTargetDirPath, absSymDirPath)
+    abs_target_dir_path = os.path.abspath(target_dir_path)
+    abs_sym_dir_path = os.path.abspath(sym_dest_dir)
+    relative_dir_path = os.path.relpath(abs_target_dir_path, abs_sym_dir_path)
     # Initialize relative symlink entries to target file.
 
-    symFilePath = os.path.join(relativeDirPath, srcfile_name)
-    # logging.info("ln -s %s %s ", symFilePath, symDestFilePath)
-    os.symlink(symFilePath, symDestFilePath)  # Create the symlink
+    sym_file_path = os.path.join(relative_dir_path, srcfile_name)
+    # logging.info("ln -s %s %s ", sym_file_path, sym_dest_file_path)
+    os.symlink(sym_file_path, sym_dest_file_path)  # Create the symlink
     # Check if symlink was created successfully
-    if os.path.islink(symDestFilePath):
-        logging.info(f"Saved at {symDestFilePath}")
+    if os.path.islink(sym_dest_file_path):
+        logging.info("Saved at %s", sym_dest_file_path)
     else:
-        logging.warning("Failed to Create Symlink at %s", symDestFilePath)
+        logging.warning("Failed to Create Symlink at %s", sym_dest_file_path)
 
 
 # ------------------------------------------------------------------------------
@@ -891,14 +890,13 @@ def saveRecent(recent_max, recent_dir, file_path, filename_prefix):
     Create a symlink file in recent folder (timelapse or motion subfolder)
     Delete Oldest symlink file if recent_max exceeded.
     """
-    show_log = False
     if recent_max > 0:
         deleteOldFiles(recent_max, os.path.abspath(recent_dir), filename_prefix)
         makeRelSymlink(file_path, recent_dir)
 
 
 # ------------------------------------------------------------------------------
-def filesToDelete(mediaDirPath, extension=IMAGE_FORMAT):
+def filesToDelete(mediaDirPath, file_ext=IMAGE_FORMAT):
     """
     Deletes files of specified format extension
     by walking folder structure from specified mediaDirPath
@@ -908,7 +906,7 @@ def filesToDelete(mediaDirPath, extension=IMAGE_FORMAT):
             os.path.join(dirname, file_name)
             for dirname, dirnames, file_names in os.walk(mediaDirPath)
             for file_name in file_names
-            if file_name.endswith(extension)
+            if file_name.endswith(file_ext)
         ),
         key=lambda fn: os.stat(fn).st_mtime,
         reverse=True,
@@ -916,45 +914,45 @@ def filesToDelete(mediaDirPath, extension=IMAGE_FORMAT):
 
 
 # ------------------------------------------------------------------------------
-def freeSpaceUpTo(freeMB, mediaDir, extension=IMAGE_FORMAT):
+def freeSpaceUpTo(free_mb, media_dir, file_ext=IMAGE_FORMAT):
     """
-    Walks mediaDir and deletes oldest files until SPACE_TARGET_MB is achieved.
+    Walks media_dir and deletes oldest files until SPACE_TARGET_MB is achieved.
     You should Use with Caution this feature.
     """
-    mediaDirPath = os.path.abspath(mediaDir)
+    mediaDirPath = os.path.abspath(media_dir)
     if os.path.isdir(mediaDirPath):
-        MB2Bytes = 1048576  # Conversion from MB to Bytes
-        targetFreeBytes = freeMB * MB2Bytes
-        file_list = filesToDelete(mediaDir, extension)
-        totFiles = len(file_list)
+        mb_2_bytes = 1048576  # Conversion from MB to Bytes
+        target_free_bytes = free_mb * mb_2_bytes
+        file_list = filesToDelete(media_dir, file_ext)
+        total_files = len(file_list)
         delcnt = 0
         logging.info("Session Started")
         while file_list:
             statv = os.statvfs(mediaDirPath)
-            availFreeBytes = statv.f_bfree * statv.f_bsize
-            if availFreeBytes >= targetFreeBytes:
+            avail_free_bytes = statv.f_bfree * statv.f_bsize
+            if avail_free_bytes >= target_free_bytes:
                 break
-            filePath = file_list.pop()
+            file_path = file_list.pop()
             try:
-                os.remove(filePath)
-            except OSError as err_msg:
-                logging.error(f"Del Failed {filePath}")
-                logging.error(f"Error is {err_msg}")
+                os.remove(file_path)
+            except OSError as e:
+                logging.error("Del Failed %s", file_path)
+                logging.error("Error is %s", str(e))
 
             delcnt += 1
-            logging.info(f"Del {filePath}")
+            logging.info("Del %s", file_path)
             logging.info(
                 "Target=%i MB  Avail=%i MB  Deleted %i of %i Files ",
-                targetFreeBytes / MB2Bytes,
-                availFreeBytes / MB2Bytes,
+                target_free_bytes / mb_2_bytes,
+                avail_free_bytes / mb_2_bytes,
                 delcnt,
-                totFiles,
+                total_files,
             )
             # Avoid deleting more than 1/4 of files at one time
-            if delcnt > totFiles / 4:
-                logging.warning("Max Deletions Reached %i of %i", delcnt, totFiles)
+            if delcnt > total_files / 4:
+                logging.warning("Max Deletions Reached %i of %i", delcnt, total_files)
                 logging.warning(
-                    "Deletions Restricted to 1/4 of " "total files per session."
+                    "Deletions Restricted to 1/4 of total files per session."
                 )
                 break
         logging.info("Session Ended")
@@ -963,7 +961,7 @@ def freeSpaceUpTo(freeMB, mediaDir, extension=IMAGE_FORMAT):
 
 
 # ------------------------------------------------------------------------------
-def freeDiskSpaceCheck(lastSpaceCheck):
+def freeDiskSpaceCheck(last_space_check):
     """
     Perform Disk space checking and Clean up
     if enabled and return datetime done
@@ -972,9 +970,9 @@ def freeDiskSpaceCheck(lastSpaceCheck):
     if SPACE_TIMER_HOURS > 0:  # Check if disk free space timer hours is enabled
         # See if it is time to do disk clean-up check
         if (
-            datetime.datetime.now() - lastSpaceCheck
+            datetime.datetime.now() - last_space_check
         ).total_seconds() > SPACE_TIMER_HOURS * 3600:
-            lastSpaceCheck = datetime.datetime.now()
+            last_space_check = datetime.datetime.now()
             if SPACE_TARGET_MB < 100:  # set freeSpaceMB to reasonable value if too low
                 diskFreeMB = 100
             else:
@@ -987,7 +985,7 @@ def freeDiskSpaceCheck(lastSpaceCheck):
                 SPACE_TARGET_EXT,
             )
             freeSpaceUpTo(diskFreeMB, SPACE_MEDIA_DIR, SPACE_TARGET_EXT)
-    return lastSpaceCheck
+    return last_space_check
 
 
 # ------------------------------------------------------------------------------
@@ -998,7 +996,7 @@ def getCurrentCount(number_path, number_start):
     """
     if not os.path.isfile(number_path):
         # Create numberPath file if it does not exist
-        logging.info(f"Creating New File {number_path} number_start= {number_start}")
+        logging.info("Creating New File {number_path} number_start= {number_start}")
         open(number_path, "w").close()
         f = open(number_path, "w+")
         f.write(str(number_start))
@@ -1013,16 +1011,16 @@ def getCurrentCount(number_path, number_start):
         except ValueError:
             # Try to determine if this is motion or timelapse
             if number_path.find(MOTION_PREFIX) > 0:
-                filePath = MOTION_PATH + "/*" + IMAGE_FORMAT
-                fprefix = MOTION_PATH + MOTION_PREFIX + IMAGE_NAME_PREFIX
+                file_path = MOTION_PATH + "/*" + IMAGE_FORMAT
+                file_prefix = MOTION_PATH + MOTION_PREFIX + IMAGE_NAME_PREFIX
             else:
-                filePath = TIMELAPSE_PATH + "/*" + IMAGE_FORMAT
-                fprefix = TIMELAPSE_PATH + TIMELAPSE_PREFIX + IMAGE_NAME_PREFIX
+                file_path = TIMELAPSE_PATH + "/*" + IMAGE_FORMAT
+                file_prefix = TIMELAPSE_PATH + TIMELAPSE_PREFIX + IMAGE_NAME_PREFIX
             try:
                 # Scan image folder for most recent file
-                # and try to extract most recent number counter
-                newest = max(glob.iglob(filePath), key=os.path.getctime)
-                write_count = newest[len(fprefix) + 1 : newest.find(IMAGE_FORMAT)]
+                # and try to extract most recent number file_counter
+                newest_file = max(glob.iglob(file_path), key=os.path.getctime)
+                write_count = newest_file[len(file_prefix) + 1 : newest_file.find(IMAGE_FORMAT)]
             except:
                 write_count = number_start
             try:
@@ -1030,7 +1028,7 @@ def getCurrentCount(number_path, number_start):
             except ValueError:
                 number_counter = number_start
             logging.warning(
-                f"Found Invalid Data in {number_path} Resetting Counter to {number_counter}",
+                "Found Invalid Data in {number_path} Resetting Counter to {number_counter}",
             )
         f = open(number_path, "w+")
         f.write(str(number_counter))
@@ -1089,23 +1087,23 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
         im_draw.save(image_name, quality="keep")
     else:
         im_draw.save(image_name)
-    logging.info(f"Added {text_colour} Image Text [ {image_text} ]")
+    logging.info("Added %s Image Text [ %s ]", text_colour, image_text)
     try:
         metadata.write()  # Write previously saved exif data to image file
     except:
         logging.warning("Image EXIF Data Not Transferred.")
-    logging.info(f"Saved {image_name}")
+    logging.info("Saved %s", image_name)
 
 
 # ------------------------------------------------------------------------------
-def writeCounter(counter, counter_path):
+def writeCounter(file_counter, counter_path):
     """
     Write next counter number
     to specified counter_path dat file
     to remember where counter is to start next in case
     app shuts down.
     """
-    str_count = str(counter)
+    str_count = str(file_counter)
     if not os.path.isfile(counter_path):
         logging.info("Create New Counter File Counter=%s %s", str_count, counter_path)
         open(counter_path, "w").close()
@@ -1117,12 +1115,12 @@ def writeCounter(counter, counter_path):
 
 # ------------------------------------------------------------------------------
 def postImageProcessing(
-    numberon,
-    counterstart,
-    countermax,
-    counter,
-    recycle,
-    counterpath,
+    number_on,
+    counter_start,
+    counter_max,
+    file_counter,
+    re_cycle,
+    counter_path,
     file_name,
     currentday_mode,
     ):
@@ -1139,12 +1137,12 @@ def postImageProcessing(
             right_now.minute,
             right_now.second,
         )
-        if numberon:
-            if not recycle and countermax > 0:
-                counterStr = "%i/%i " % (counter, counterstart + countermax)
+        if number_on:
+            if not re_cycle and counter_max > 0:
+                counterStr = "%i/%i " % (file_counter, counter_start + counter_max)
                 imageText = counterStr + dateTimeText
             else:
-                counterStr = "%i  " % (counter)
+                counterStr = "%i  " % (file_counter)
                 imageText = counterStr + dateTimeText
         else:
             imageText = dateTimeText
@@ -1154,31 +1152,31 @@ def postImageProcessing(
         #except:
         #    pass
     # Process currentCount for next image if number sequence is enabled
-    if numberon:
-        counter += 1
-        if countermax > 0:
-            if counter >= counterstart + countermax:
-                if recycle:
-                    counter = counterstart
+    if number_on:
+        file_counter += 1
+        if counter_max > 0:
+            if file_counter >= counter_start + counter_max:
+                if re_cycle:
+                    file_counter = counter_start
                 else:
-                    counter = counterstart + countermax + 1
+                    file_counter = counter_start + counter_max + 1
                     logging.warning(
                         "Exceeded Image Count numberMax=%i for %s \n",
-                        countermax,
+                        counter_max,
                         file_name,
                     )
-        # write next image counter number to dat file
-        writeCounter(counter, counterpath)
-    return counter
+        # write next image file_counter number to dat file
+        writeCounter(file_counter, counter_path)
+    return file_counter
 
 
 # ------------------------------------------------------------------------------
-def getVideoName(path, filename_prefix, numberon, counter):
+def getVideoName(path, filename_prefix, number_on, file_counter):
     """build image file names by number sequence or date/time"""
     file_name = None
-    if numberon:
+    if number_on:
         if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
-            file_name = os.path.join(path, filename_prefix + str(counter) + ".h264")
+            file_name = os.path.join(path, filename_prefix + str(file_counter) + ".h264")
     else:
         if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
             right_now = datetime.datetime.now()
@@ -1196,10 +1194,10 @@ def getVideoName(path, filename_prefix, numberon, counter):
 
 
 # ------------------------------------------------------------------------------
-def getImagefile_name(path, filename_prefix, numberon, counter):
+def getImageFilename(path, filename_prefix, number_on, file_counter):
     """build image file names by number sequence or date/time"""
-    if numberon:
-        file_name = os.path.join(path, filename_prefix + str(counter) + IMAGE_FORMAT)
+    if number_on:
+        file_name = os.path.join(path, filename_prefix + str(file_counter) + IMAGE_FORMAT)
     else:
         right_now = datetime.datetime.now()
         file_name = "%s/%s%04d%02d%02d-%02d%02d%02d%s" % (
@@ -1238,11 +1236,11 @@ def showBox(file_name):
 # ------------------------------------------------------------------------------
 def takeMotionQuickImage(image_data, file_name):
     """Enlarge and Save stream image if MOTION_TRACK_QUICK_PIC_ON=True"""
-    big_image = (
-        cv2.resize(image_data, (bigImageWidth, bigImageHeight)) if bigImage != 1 else image
+    big_image = (cv2.resize(image_data, (BIG_IMAGE_WIDTH, BIG_IMAGE_HEIGHT))
+                 if BIG_IMAGE != 1 else image_data
     )
     cv2.imwrite(file_name, big_image)
-    logging.info(f"Saved {bigImageWidth}x{bigImageHeight} Image to {file_name}")
+    logging.info("Saved {BIG_IMAGE_WIDTH}x{BIG_IMAGE_HEIGHT} resized Image to {file_name}")
 
 
 # ------------------------------------------------------------------------------
@@ -1330,9 +1328,9 @@ def takeImage(file_path, im_data):
         logging.info(f'Low Light {px_ave}/{DARK_START_PXAVE} px_ave')
         time.sleep(analogue_gain) # Allow time for camera to adjust for long exposure
 
-    logging.info(f"ImageSize=({image_width}x{image_height}) vflip={IMAGE_VFLIP} hflip={IMAGE_HFLIP}")
-    logging.info(f"px_ave={px_ave}, Exposure={exposure_microsec} microsec, Gain={analogue_gain} Auto is 0")
-    logging.info(f"Save Image to {file_path}")
+    logging.info("ImageSize=({image_width}x{image_height}) vflip={IMAGE_VFLIP} hflip={IMAGE_HFLIP}")
+    logging.info("px_ave={px_ave}, Exposure={exposure_microsec} microsec, Gain={analogue_gain} Auto is 0")
+    logging.info("Save Image to %s", file_path)
     picam2.capture_file(file_path)      # Capture the image
     picam2.close()  # Close the camera instance
     if IMAGE_GRAYSCALE:
@@ -1350,46 +1348,46 @@ def getMotionTrackPoint(grayimage_1, grayimage_2):
     check for motion and return center point
     of motion for largest contour.
     """
-    movementCenterPoint = []  # initialize list of movementCenterPoints
-    biggestArea = MIN_AREA
+    move_center_point = []  # initialize list of movementCenterPoints
+    biggest_area = MIN_AREA
     # Get differences between the two greyed images
-    differenceimage = cv2.absdiff(grayimage_1, grayimage_2)
+    difference_image = cv2.absdiff(grayimage_1, grayimage_2)
     # Blur difference image to enhance motion vectors
-    differenceimage = cv2.blur(differenceimage, (BLUR_SIZE, BLUR_SIZE))
+    difference_image = cv2.blur(difference_image, (BLUR_SIZE, BLUR_SIZE))
     # Get threshold of blurred difference image
     # based on THRESHOLD_SENSITIVITY variable
-    retval, thresholdimage = cv2.threshold(
-        differenceimage, THRESHOLD_SENSITIVITY, 255, cv2.THRESH_BINARY
+    retval, threshold_image = cv2.threshold(
+        difference_image, THRESHOLD_SENSITIVITY, 255, cv2.THRESH_BINARY
     )
     try:
         # opencv2 syntax default
         contours, hierarchy = cv2.findContours(
-            thresholdimage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            threshold_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
     except ValueError:
         # opencv 3 syntax
-        thresholdimage, contours, hierarchy = cv2.findContours(
-            thresholdimage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        threshold_image, contours, hierarchy = cv2.findContours(
+            threshold_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
     if contours:
         for c in contours:
             cArea = cv2.contourArea(c)
-            if cArea > biggestArea:
-                biggestArea = cArea
+            if cArea > biggest_area:
+                biggest_area = cArea
                 (x, y, w, h) = cv2.boundingRect(c)
                 cx = int(x + w / 2)  # x center point of contour
                 cy = int(y + h / 2)  # y center point of contour
-                movementCenterPoint = [cx, cy]
-    return movementCenterPoint
+                move_center_point = [cx, cy]
+    return move_center_point
 
 
 # ------------------------------------------------------------------------------
-def trackMotionDistance(m_Point1, m_Point2):
+def trackMotionDistance(m_point1, m_point2):
     """
     Return the triangulated distance between two tracking locations
     """
-    x1, y1 = m_Point1
-    x2, y2 = m_Point2
+    x1, y1 = m_point1
+    x2, y2 = m_point2
     track_len = abs(math.hypot(x2 - x1, y2 - y1))
     return track_len
 
@@ -1459,13 +1457,13 @@ def getSchedStart(date_to_check):
                     # See if a valid time is found returns with current day
                     good_datetime = parse(time_try)
                 except:
-                    logging.error(f"Bad Date and/or Time Format {date_to_check}")
+                    logging.error("Bad Date and/or Time Format %s", date_to_check)
                     logging.error(
                         "Use a Valid Date and/or Time "
                         'Format Eg "DD-MMM-YYYY HH:MM:SS"'
                     )
                     good_datetime = datetime.datetime.now()
-                    logging.warning(f"Resetting date/time to Now: {good_datetime}")
+                    logging.warning("Resetting date/time to Now: %s", good_datetime)
         # Check if date/time is past
         if good_datetime < datetime.datetime.now():
             if ":" in date_to_check:  # Check if there is a time component
@@ -1524,13 +1522,13 @@ def takeMiniTimelapse(mo_path, filename_prefix, num_on, motion_num_count, curren
     keep_taking_images = True
     image_count = 1
     motion_num_count = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
-    file_name = getImagefile_name(mo_path, filename_prefix, num_on, motion_num_count)
+    file_name = getImageFilename(mo_path, filename_prefix, num_on, motion_num_count)
     while keep_taking_images:
         logging.info(f"{image_count}")
         takeImage(file_name, im_data)
         motion_num_count += 1
         writeCounter(motion_num_count, NUM_PATH_MOTION)
-        file_name = getImagefile_name(mo_path, filename_prefix, num_on, motion_num_count)
+        file_name = getImageFilename(mo_path, filename_prefix, num_on, motion_num_count)
         right_now = datetime.datetime.now()
         timelapse_diff = (right_now - check_timelapse_timer).total_seconds()
         if timelapse_diff > MOTION_TRACK_MINI_TL_SEQ_SEC + 1:
@@ -1539,19 +1537,19 @@ def takeMiniTimelapse(mo_path, filename_prefix, num_on, motion_num_count, curren
             image_count += 1
             saveRecent(MOTION_RECENT_MAX, MOTION_RECENT_DIR, file_name, filename_prefix)
             time.sleep(MOTION_TRACK_MINI_TL_TIMER_SEC)
-    logging.info(f"END - Total {image_count} Images in {timelapse_diff} sec\n")
+    logging.info("END - Total {image_count} Images in {timelapse_diff} sec\n")
 
 
 
 # ------------------------------------------------------------------------------
-def takeVideo(file_name, vid_seconds, vid_W=1280, vid_H=720, vid_fps=25):
+def takeVideo(file_name, vid_seconds, vid_w=1280, vid_h=720, vid_fps=25):
     """Take a short motion video if required"""
-    logging.info("Start: Size %ix%i for %i sec at %i fps", vid_W, vid_H, vid_seconds, vid_fps)
+    logging.info("Start: Size %ix%i for %i sec at %i fps", vid_w, vid_h, vid_seconds, vid_fps)
     if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
         file_path_mp4 = os.path.join(os.path.dirname(file_name),
                                    os.path.splitext(os.path.basename(file_name))[0] + ".mp4")
         picam2 = Picamera2()
-        picam2.configure(picam2.create_video_configuration({"size": (vid_W, vid_H)},
+        picam2.configure(picam2.create_video_configuration({"size": (vid_w, vid_h)},
                                                            transform=Transform(vflip=IMAGE_VFLIP,
                                                                                hflip=IMAGE_HFLIP)))
         picam2.set_controls({"FrameRate": vid_fps})
@@ -1565,7 +1563,7 @@ def takeVideo(file_name, vid_seconds, vid_W=1280, vid_H=720, vid_fps=25):
             try:
                 picam2.start_recording(encoder, output)
             except RuntimeError:
-                logging.warning(f"Camera Error. Retry {vid_retries+1} of {vid_total_retries} Wait ...")
+                logging.warning("Camera Error. Retry {vid_retries+1} of {vid_total_retries} Wait ...")
                 time.sleep(5)
                 continue
             break
@@ -1575,9 +1573,9 @@ def takeVideo(file_name, vid_seconds, vid_W=1280, vid_H=720, vid_fps=25):
         picam2.close()
         time.sleep(2)  # allow time to close camera
         if MOTION_RECENT_MAX:
-            logging.info(f"Saved Motion Tracking Video to {file_path_mp4}")
+            logging.info("Saved Motion Tracking Video to %s", file_path_mp4)
         else:
-            logging.info(f"Saved Video Repeat to {file_path_mp4}")
+            logging.info("Saved Video Repeat to %s", file_path_mp4)
         saveRecent(MOTION_RECENT_MAX, MOTION_RECENT_DIR, file_path_mp4, MOTION_PREFIX)
     else:
         logging.warning("You Must have MOTION_VIDEO_ON= True or VIDEO_REPEAT_ON= True")
@@ -1631,10 +1629,10 @@ def takePantiltSequence(file_name, day_mode, num_count, num_path, im_data):
         logging.info("Start Motion Tracking PanTilt Sequence.")
     elif PANTILT_SEQ_ON:
         seq_prefix = PANTILT_SEQ_IMAGE_PREFIX + IMAGE_NAME_PREFIX
-        logging.info(f"MOTION_TRACK_ON={MOTION_TRACK_ON}, TIMELAPSE_ON={TIMELAPSE_ON}")
-        logging.info(f"PANTILT_SEQ_ON={PANTILT_SEQ_ON} Take Sequence Every {PANTILT_SEQ_TIMER_SEC} sec")
-        logging.info(f"Start PanTilt Images at Stops {PANTILT_SEQ_STOPS}")
-    # initialize counter to ensure each image file_name is unique
+        logging.info("MOTION_TRACK_ON={MOTION_TRACK_ON}, TIMELAPSE_ON={TIMELAPSE_ON}")
+        logging.info("PANTILT_SEQ_ON={PANTILT_SEQ_ON} Take Sequence Every {PANTILT_SEQ_TIMER_SEC} sec")
+        logging.info("Start PanTilt Images at Stops {PANTILT_SEQ_STOPS}")
+    # initialize file_counter to ensure each image file_name is unique
     pantilt_seq_image_num = 0
 
     for cam_pos in PANTILT_SEQ_STOPS:  # take images at each specified stop
@@ -1717,7 +1715,7 @@ def takePano(pano_seq_num, day_mode, im_data):
     print("")
     logging.info("Start timer=%i sec  pano_seq_num=%s", PANO_TIMER_SEC, pano_seq_num)
 
-    pano_image_num = 0  # initialize counter to ensure each image file_name is unique
+    pano_image_num = 0  # initialize file_counter to ensure each image file_name is unique
     pano_image_files = (
         ""  # string of contatenated image input pano file_names for stitch command line
     )
@@ -1795,14 +1793,14 @@ def videoRepeat():
     This is a special dash cam video mode
     that overrides both timelapse and motion tracking settings
     It has it's own set of settings to manage start, video duration,
-    number recycle mode, Etc.
+    number re_cycle mode, Etc.
     """
     # Check if folder exist and create if required
     if not os.path.isdir(VIDEO_DIR):
-        logging.info(f"Create videoRepeat Folder {VIDEO_DIR}")
+        logging.info("Create videoRepeat Folder %s", VIDEO_DIR)
         os.makedirs(VIDEO_DIR)
     print("--------------------------------------------------------------------")
-    print(f"VideoRepeat . VIDEO_REPEAT_ON= {VIDEO_REPEAT_ON}")
+    print("VideoRepeat . VIDEO_REPEAT_ON= %s", VIDEO_REPEAT_ON)
     print(
         "   Info ..... Size=%ix%i  VIDEO_PREFIX=%s  VIDEO_FILE_SEC=%i seconds  VIDEO_FPS=%i"
         % (
@@ -1829,40 +1827,40 @@ def videoRepeat():
         "WARNING: VIDEO_REPEAT_ON=%s Suppresses TimeLapse and Motion Settings."
         % VIDEO_REPEAT_ON
     )
-    startVideoRepeat = getSchedStart(VIDEO_START_AT)
-    if not checkSchedStart(startVideoRepeat):
+    start_video_repeat = getSchedStart(VIDEO_START_AT)
+    if not checkSchedStart(start_video_repeat):
         logging.info('VIDEO_START_AT = "%s" ', VIDEO_START_AT)
         logging.info(
-            "Video Repeat: Sched Start Set For %s  Please Wait ...", startVideoRepeat
+            "Video Repeat: Sched Start Set For %s  Please Wait ...", start_video_repeat
         )
-        while not checkSchedStart(startVideoRepeat):
+        while not checkSchedStart(start_video_repeat):
             pass
-    videoStartTime = datetime.datetime.now()
-    lastSpaceCheck = datetime.datetime.now()
-    videoCount = 0
-    videoNumCounter = VIDEO_NUM_START
-    keepRecording = True
-    while keepRecording:
+    video_start_time = datetime.datetime.now()
+    last_space_check = datetime.datetime.now()
+    video_count = 0
+    video_num_counter = VIDEO_NUM_START
+    keep_recording = True
+    while keep_recording:
         # if required check free disk space and delete older files
         # Set variable SPACE_TARGET_EXT='mp4' and
         # SPACE_MEDIA_DIR= to appropriate folder path
         if SPACE_TIMER_HOURS > 0:
-            lastSpaceCheck = freeDiskSpaceCheck(lastSpaceCheck)
-        file_name = getVideoName(VIDEO_DIR, VIDEO_PREFIX, VIDEO_NUM_ON, videoNumCounter)
+            last_space_check = freeDiskSpaceCheck(last_space_check)
+        file_name = getVideoName(VIDEO_DIR, VIDEO_PREFIX, VIDEO_NUM_ON, video_num_counter)
         takeVideo(file_name, VIDEO_FILE_SEC,
                   VIDEO_REPEAT_WIDTH,
                   VIDEO_REPEAT_HEIGHT,
                   VIDEO_FPS
                  )
-        time_used = (datetime.datetime.now() - videoStartTime).total_seconds()
+        time_used = (datetime.datetime.now() - video_start_time).total_seconds()
         time_remaining = (VIDEO_SESSION_MIN * 60 - time_used) / 60.0
-        videoCount += 1
+        video_count += 1
         if VIDEO_NUM_ON:
-            videoNumCounter += 1
+            video_num_counter += 1
             if VIDEO_NUM_MAX > 0:
-                if videoNumCounter - VIDEO_NUM_START > VIDEO_NUM_MAX:
+                if video_num_counter - VIDEO_NUM_START > VIDEO_NUM_MAX:
                     if VIDEO_NUM_RECYCLE_ON:
-                        videoNumCounter = VIDEO_NUM_START
+                        video_num_counter = VIDEO_NUM_START
                         logging.info(
                             "Restart Numbering: VIDEO_NUM_RECYCLE_ON=%s "
                             "and VIDEO_NUM_MAX=%i Exceeded",
@@ -1870,27 +1868,27 @@ def videoRepeat():
                             VIDEO_NUM_MAX,
                         )
                     else:
-                        keepRecording = False
+                        keep_recording = False
                         logging.info(
                             "Exit since VIDEO_NUM_RECYCLE_ON=%s "
                             "and VIDEO_NUM_MAX=%i Exceeded  %i Videos Recorded",
                             VIDEO_NUM_RECYCLE_ON,
                             VIDEO_NUM_MAX,
-                            videoCount,
+                            video_count,
                         )
-                logging.info("Recorded %i of %i Videos", videoCount, VIDEO_NUM_MAX)
+                logging.info("Recorded %i of %i Videos", video_count, VIDEO_NUM_MAX)
             else:
                 logging.info(
                     "Recorded %i Videos  VIDEO_NUM_MAX=%i 0=Continuous",
-                    videoCount,
+                    video_count,
                     VIDEO_NUM_MAX,
                 )
         else:
             logging.info(
-                f"Progress: {videoCount} Videos Recorded in Folder {VIDEO_DIR}")
+                f"Progress: {video_count} Videos Recorded in Folder {VIDEO_DIR}")
         if VIDEO_SESSION_MIN > 0:
             if time_used > VIDEO_SESSION_MIN * 60:
-                keepRecording = False
+                keep_recording = False
                 errorText = (
                     "Stop Recording Since VIDEO_SESSION_MIN=%i minutes Exceeded \n",
                     VIDEO_SESSION_MIN,
@@ -1904,8 +1902,8 @@ def videoRepeat():
                     VIDEO_SESSION_MIN,
                 )
         else:
-            videoStartTime = datetime.datetime.now()
-    logging.info(f"Exit: {videoCount} Videos Recorded in Folder {VIDEO_DIR}")
+            video_start_time = datetime.datetime.now()
+    logging.info("Exit: %i Videos Recorded in Folder %s ", video_count, VIDEO_DIR)
 
 
 # ------------------------------------------------------------------------------
@@ -1929,19 +1927,19 @@ def timolo():
     motion_found = False
     take_timelapse = True
     stop_timelapse = False
-    takeMotion = True
-    stopMotion = False
+    take_motion = True
+    stop_motion = False
 
     # Initialize some Timers
     pix_ave_timer = datetime.datetime.now()
     pantilt_seq_timer = datetime.datetime.now()
     motion_force_timer = datetime.datetime.now()
     timelapseExitStart = datetime.datetime.now()
-    startTL = getSchedStart(TIMELAPSE_START_AT)
-    startMO = getSchedStart(MOTION_START_AT)
-    trackLen = 0.0
+    start_timelapse = getSchedStart(TIMELAPSE_START_AT)
+    start_motion = getSchedStart(MOTION_START_AT)
+    track_length = 0.0
     if SPACE_TIMER_HOURS > 0:
-        lastSpaceCheck = datetime.datetime.now()
+        last_space_check = datetime.datetime.now()
     if TIMELAPSE_ON:
         tl_str = "TimeLapse"
         # Check if timelapse subDirs reqd and create one if non exists
@@ -1952,23 +1950,29 @@ def timolo():
             TIMELAPSE_PREFIX,
         )
         if TIMELAPSE_NUM_ON:
-            timelapse_num_count = getCurrentCount(NUM_PATH_TIMELAPSE, TIMELAPSE_NUM_START)
+            timelapse_num_count = getCurrentCount(NUM_PATH_TIMELAPSE,
+                                                  TIMELAPSE_NUM_START)
             tl_cnt = str(timelapse_num_count)
     else:
-        logging.warning("Timelapse is Surpressed per TIMELAPSE_ON=%s", TIMELAPSE_ON)
+        logging.warning("Timelapse is Surpressed per TIMELAPSE_ON=%s",
+                         TIMELAPSE_ON)
         stop_timelapse = True
     if MOTION_TRACK_ON:
         logging.info("Start picamera2 VideoStream Thread ...")
         if MOTION_TRACK_QUICK_PIC_ON:
-            logging.info(f"Motion Track Mode: MOTION_TRACK_QUICK_PIC_ON= {MOTION_TRACK_QUICK_PIC_ON}")
+            logging.info("Motion Track Mode: MOTION_TRACK_QUICK_PIC_ON= %s",
+                         MOTION_TRACK_QUICK_PIC_ON)
         elif MOTION_TRACK_MINI_TL_ON:
-            logging.info(f"Motion Track Mode: MOTION_TRACK_MINI_TL_ON= {MOTION_TRACK_MINI_TL_ON}")
+            logging.info("Motion Track Mode: MOTION_TRACK_MINI_TL_ON= %s",
+                         MOTION_TRACK_MINI_TL_ON)
         elif MOTION_TRACK_PANTILT_SEQ_ON:
-            logging.info(f"Motion Track Mode: MOTION_TRACK_PANTILT_SEQ_ON= {MOTION_TRACK_PANTILT_SEQ_ON}")
+            logging.info("Motion Track Mode: MOTION_TRACK_PANTILT_SEQ_ON= %s",
+                         MOTION_TRACK_PANTILT_SEQ_ON)
         elif MOTION_VIDEO_ON:
-            logging.info(f"Motion Track Mode: MOTION_VIDEO_ON= {MOTION_VIDEO_ON}")
+            logging.info("Motion Track Mode: MOTION_VIDEO_ON= %s",
+                         MOTION_VIDEO_ON)
         else:
-            logging.info(f"Motion Track Mode: STILL IMAGE")
+            logging.info("Motion Track Mode: STILL IMAGE")
 
         vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                        vflip=IMAGE_VFLIP,
@@ -1977,7 +1981,9 @@ def timolo():
         # Check if motion subDirs required and
         # create one if required and non exists
         mo_path = subDirChecks(
-            MOTION_SUBDIR_MAX_HOURS, MOTION_SUBDIR_MAX_FILES, MOTION_DIR, MOTION_PREFIX
+            MOTION_SUBDIR_MAX_HOURS,
+            MOTION_SUBDIR_MAX_FILES,
+            MOTION_DIR, MOTION_PREFIX
         )
         if MOTION_NUM_ON:
             motion_num_count = getCurrentCount(NUM_PATH_MOTION, MOTION_NUM_START)
@@ -2003,25 +2009,25 @@ def timolo():
             "Motion Tracking is Surpressed per MOTION_TRACK_ON=%s",
             MOTION_TRACK_ON,
         )
-        stopMotion = True
+        stop_motion = True
     if TIMELAPSE_ON and MOTION_TRACK_ON:
         tl_str = " and " + tl_str
 
     if LOG_TO_FILE_ON:
-        logging.info(f"LOG_TO_FILE_ON= {LOG_TO_FILE_ON} Logging to Console Disabled.")
-        logging.info(f"Sending Console Messages to {log_file_path}")
-        logging.info(f"Entering Loop for {mo_str}{tl_str}")
+        logging.info("LOG_TO_FILE_ON= %s Logging to Console Disabled.", LOG_TO_FILE_ON)
+        logging.info("Sending Console Messages to %s", log_file_path)
+        logging.info("Entering Loop for %s %s", mo_str, tl_str)
     else:
         if PLUGIN_ON:
             logging.info("plugin %s - Start %s%s Loop ...", PLUGIN_NAME, mo_str, tl_str)
         else:
-            logging.info(f"Start {mo_str}{tl_str} Loop ... ctrl-c Exits")
-    if MOTION_TRACK_ON and not checkSchedStart(startMO):
+            logging.info("Start %s%s Loop ... ctrl-c Exits", mo_str, tl_str)
+    if MOTION_TRACK_ON and not checkSchedStart(start_motion):
         logging.info('Motion Track: MOTION_START_AT = "%s"', MOTION_START_AT)
-        logging.info("Motion Track: Sched Start Set For %s  Please Wait ...", startMO)
-    if TIMELAPSE_ON and not checkSchedStart(startTL):
+        logging.info("Motion Track: Sched Start Set For %s  Please Wait ...", start_motion)
+    if TIMELAPSE_ON and not checkSchedStart(start_timelapse):
         logging.info('Timelapse   : TIMELAPSE_START_AT = "%s"', TIMELAPSE_START_AT)
-        logging.info("Timelapee   : Sched Start Set For %s  Please Wait ...", startTL)
+        logging.info("Timelapee   : Sched Start Set For %s  Please Wait ...", start_timelapse)
     # Check to make sure PANTILT_ON is enabled if required.
     if PANTILT_SEQ_ON and not PANTILT_ON:
         logging.warning(
@@ -2042,7 +2048,7 @@ def timolo():
         if (MOTION_TRACK_ON
             and (not MOTION_NUM_RECYCLE_ON)
             and (motion_num_count > MOTION_NUM_START + MOTION_NUM_MAX)
-            and (not stopMotion)):
+            and (not stop_motion)):
             logging.warning(
                 "MOTION_NUM_RECYCLE_ON=%s and motion_num_count %i Exceeds %i",
                 MOTION_NUM_RECYCLE_ON,
@@ -2055,9 +2061,9 @@ def timolo():
             )
             logging.warning(
                 f"Then Delete {NUM_PATH_MOTION} and Restart {PROG_NAME} \n")
-            takeMotion = False
-            stopMotion = True
-        if stop_timelapse and stopMotion and not PANTILT_SEQ_ON and not PANO_ON and not VIDEO_REPEAT_ON:
+            take_motion = False
+            stop_motion = True
+        if stop_timelapse and stop_motion and not PANTILT_SEQ_ON and not PANO_ON and not VIDEO_REPEAT_ON:
             logging.warning(
                 "NOTICE: Motion, Timelapse, pantilt_seq, Pano and Video Repeat are Disabled"
             )
@@ -2073,7 +2079,7 @@ def timolo():
             sys.exit(1)
         # if required check free disk space and delete older files (jpg)
         if SPACE_TIMER_HOURS > 0:
-            lastSpaceCheck = freeDiskSpaceCheck(lastSpaceCheck)
+            last_space_check = freeDiskSpaceCheck(last_space_check)
         # check the timer for measuring pixel average of stream image frame
         pix_ave_timer, take_pix_ave = checkTimer(pix_ave_timer, IMAGE_PIX_AVE_TIMER_SEC)
         # use image_2 to check day_mode as image_1 may be average
@@ -2115,7 +2121,7 @@ def timolo():
                     seq_num_count = getCurrentCount(
                         NUM_PATH_PANTILT_SEQ, PANTILT_SEQ_NUM_START
                     )
-                    file_name = getImagefile_name(PANTILT_SEQ_IMAGES_DIR,
+                    file_name = getImageFilename(PANTILT_SEQ_IMAGES_DIR,
                                                 seq_prefix,
                                                 PANTILT_SEQ_NUM_ON,
                                                 seq_num_count,
@@ -2144,7 +2150,7 @@ def timolo():
                         PANTILT_SEQ_TIMER_SEC, next_seq_at
                     )
             # Process Timelapse events per timers
-            if TIMELAPSE_ON and checkSchedStart(startTL):
+            if TIMELAPSE_ON and checkSchedStart(start_timelapse):
                 # Check for a scheduled date/time to start timelapse
                 if first_timelapse:
                     timelapse_timer = datetime.datetime.now()
@@ -2240,7 +2246,7 @@ def timolo():
                                 TIMELAPSE_EXIT_SEC,
                             )
                     tl_prefix = TIMELAPSE_PREFIX + IMAGE_NAME_PREFIX
-                    file_name = getImagefile_name(
+                    file_name = getImageFilename(
                         tlPath, tl_prefix, TIMELAPSE_NUM_ON, timelapse_num_count
                     )
 
@@ -2293,9 +2299,9 @@ def timolo():
             # and trigger selected action eg image, quick pic, video, mini TL, pantilt
             if (
                 MOTION_TRACK_ON
-                and checkSchedStart(startMO)
-                and takeMotion
-                and (not stopMotion)
+                and checkSchedStart(start_motion)
+                and take_motion
+                and (not stop_motion)
             ):
                 # IMPORTANT - Night motion tracking may not work very well
                 #             due to long exposure times and low light
@@ -2309,32 +2315,32 @@ def timolo():
                     startPos = movePoint1
                 image_2 = vs.read()
                 grayimage_2 = cv2.cvtColor(image_2, cv2.COLOR_BGR2GRAY)
-                movePoint2 = getMotionTrackPoint(grayimage_1, grayimage_2)
-                if movePoint2 and start_track:  # Two sets of movement required
-                    trackLen = trackMotionDistance(startPos, movePoint2)
+                move_point2 = getMotionTrackPoint(grayimage_1, grayimage_2)
+                if move_point2 and start_track:  # Two sets of movement required
+                    track_length = trackMotionDistance(startPos, move_point2)
                     # wait until track well started
-                    if trackLen > TRACK_TRIG_LEN_MIN:
+                    if track_length > TRACK_TRIG_LEN_MIN:
                         # Reset tracking timer object moved
                         trackTimeout = time.time()
                         if MOTION_TRACK_INFO_ON:
                             logging.info(
-                                "Track Progress From(%i,%i) To(%i,%i) trackLen=%i/%i px",
+                                "Track Progress From(%i,%i) To(%i,%i) track_length=%i/%i px",
                                 startPos[0],
                                 startPos[1],
-                                movePoint2[0],
-                                movePoint2[1],
-                                trackLen,
+                                move_point2[0],
+                                move_point2[1],
+                                track_length,
                                 TRACK_TRIG_LEN,
                             )
                     # Track length triggered
-                    if trackLen >= TRACK_TRIG_LEN:
+                    if track_length >= TRACK_TRIG_LEN:
                         # reduce chance of two objects at different positions
-                        if trackLen >= TRACK_TRIG_LEN_MAX:
+                        if track_length >= TRACK_TRIG_LEN_MAX:
                             motion_found = False
                             if MOTION_TRACK_INFO_ON:
                                 logging.info(
                                     "TrackLen %i px Exceeded %i px Max Trig Len Allowed.",
-                                    trackLen,
+                                    track_length,
                                     TRACK_TRIG_LEN_MAX,
                                 )
                         else:
@@ -2342,24 +2348,24 @@ def timolo():
                             if PLUGIN_ON:
                                 logging.info(
                                     "%s Motion Triggered Start(%i,%i)"
-                                    "  End(%i,%i) trackLen=%.i/%i px",
+                                    "  End(%i,%i) track_length=%.i/%i px",
                                     PLUGIN_NAME,
                                     startPos[0],
                                     startPos[1],
-                                    movePoint2[0],
-                                    movePoint2[1],
-                                    trackLen,
+                                    move_point2[0],
+                                    move_point2[1],
+                                    track_length,
                                     TRACK_TRIG_LEN,
                                 )
                             else:
                                 logging.info(
                                     "Motion Triggered Start(%i,%i)"
-                                    "  End(%i,%i) trackLen=%i/%i px",
+                                    "  End(%i,%i) track_length=%i/%i px",
                                     startPos[0],
                                     startPos[1],
-                                    movePoint2[0],
-                                    movePoint2[1],
-                                    trackLen,
+                                    move_point2[0],
+                                    move_point2[1],
+                                    track_length,
                                     TRACK_TRIG_LEN,
                                 )
                             print("")
@@ -2369,7 +2375,7 @@ def timolo():
                         grayimage_2 = grayimage_1
                         start_track = False
                         startPos = []
-                        trackLen = 0.0
+                        track_length = 0.0
                 # Track timed out
                 if (time.time() - trackTimeout > trackTimer) and start_track:
                     image_1 = vs.read()
@@ -2382,7 +2388,7 @@ def timolo():
                         )
                     start_track = False
                     startPos = []
-                    trackLen = 0.0
+                    track_length = 0.0
                 if MOTION_FORCE_SEC > 0:
                     motion_force_timer, motion_force_start = checkTimer(
                         motion_force_timer, MOTION_FORCE_SEC
@@ -2401,7 +2407,7 @@ def timolo():
                     )
                 if motion_found or motion_force_start:
                     motion_prefix = MOTION_PREFIX + IMAGE_NAME_PREFIX
-                    file_name = getImagefile_name(
+                    file_name = getImageFilename(
                         mo_path, motion_prefix, MOTION_NUM_ON, motion_num_count
                     )
                     vs.stop()
@@ -2485,7 +2491,7 @@ def timolo():
                     image_2 = image_1
                     grayimage_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2GRAY)
                     grayimage_2 = grayimage_1
-                    trackLen = 0.0
+                    track_length = 0.0
                     trackTimeout = time.time()
                     startPos = []
                     start_track = False
@@ -2581,10 +2587,10 @@ if __name__ == "__main__":
         if PLUGIN_ON:
             if os.path.isfile(plugin_current):
                 os.remove(plugin_current)
-            pluginCurrentpyc = os.path.join(pluginDir, "current.pyc")
-            if os.path.isfile(pluginCurrentpyc):
-                os.remove(pluginCurrentpyc)
-    except OSError as err_msg:
-        logging.warning("Failed To Remove File %s - %s", pluginCurrentpyc, err_msg)
+            plugin_current_pyc = os.path.join(plugin_dir, "current.pyc")
+            if os.path.isfile(plugin_current_pyc):
+                os.remove(plugin_current_pyc)
+    except OSError as e:
+        logging.warning("Failed To Remove File %s - %s", plugin_current_pyc, str(e))
         sys.exit(1)
     print("Wait ...")
