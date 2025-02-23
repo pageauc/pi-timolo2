@@ -589,9 +589,9 @@ def piCamFound():
 def getMaxResolution():
     try:
         # Run libcamera-hello to list camera details
-        result = subprocess.run(['libcamera-hello', '--list-cameras'], 
-                                 stdout=subprocess.PIPE, 
-                                 stderr=subprocess.PIPE, 
+        result = subprocess.run(['libcamera-hello', '--list-cameras'],
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
                                  text=True)
         if result.returncode == 0:
             print(result.stdout)
@@ -1044,7 +1044,7 @@ def getCurrentCount(number_path, number_start):
 
 
 # ------------------------------------------------------------------------------
-def writeTextToImage(image_name, date_to_print, currentday_mode):
+def writeTextToImage(image_path, date_to_print, currentday_mode):
     """
     Function to write date/time stamp
     directly on top or bottom of images.
@@ -1059,11 +1059,11 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
             # rgb settings for black text text_foreground_colour
             text_foreground_colour = (255, 255, 255)
             text_colour = "White"
-    im_data = cv2.imread(image_name)
+    im_data = cv2.imread(image_path)
     # This is grayscale image so channels is not avail or used
     height, width, channels = im_data.shape
     # centre text and compensate for graphics text being wider
-    im_x = int((width / 2) - (len(image_name) * 2))
+    im_x = int((width / 2) - (len(image_path) * 2))
     if SHOW_TEXT_BOTTOM:
         im_y = height - 50  # show text at bottom of image
     else:
@@ -1077,43 +1077,44 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
     except:
         image_text = TEXT  # Just set for python3
 
-    im_draw = Image.open(image_name)
+    im_draw = Image.open(image_path)
 
-    try:  # Read exif data since ImageDraw does not save this metadata
-        metadata = pyexiv2.ImageMetadata(image_name)
-        metadata.read()
+    try:  # Read exif data since ImageDraw does not save image metadata
+        im_metadata = pyexiv2.ImageMetadata(image_path)
+        im_metadata.read()
     except FileNotFoundError:
+        logging.error("File Not Found %s", image_path)
         pass
     draw = ImageDraw.Draw(im_draw)
     draw.text((im_x, im_y), image_text, text_foreground_colour, font=font)
     if (IMAGE_FORMAT.lower == ".jpg" or IMAGE_FORMAT.lower == ".jpeg"):
-        im_draw.save(image_name, quality="keep")
+        im_draw.save(image_path, quality="keep")
     else:
-        im_draw.save(image_name)
+        im_draw.save(image_path)
     logging.info("Added %s Image Text [ %s ]", text_colour, image_text)
     try:
-        metadata.write()  # Write previously saved exif data to image file
-    except:
-        logging.warning("Image EXIF Data Not Transferred.")
-    logging.info("Saved %s", image_name)
+        im_metadata.write()  # Write previously saved exif data to image file
+    except Exception as e:
+        logging.warning("Image EXIF Data Not Transferred. %s", str(e))
+    logging.info("Saved %s", image_path)
 
+
+# ------------------------------------------------------------------------------
 def displayExifData(image_path):
-    """Displays EXIF data of an image using pyexiv2.
-
-    Args:
-        image_path: Path to the image file.
+    """
+    Displays EXIF data of an image using pyexiv2.
     """
     try:
-        metadata = pyexiv2.ImageMetadata(image_path)
-        metadata.read()
+        im_metadata = pyexiv2.ImageMetadata(image_path)
+        im_metadata.read()
 
-        if not metadata.exif_keys:
+        if not im_metadata.exif_keys:
            print(f"No EXIF data found in {image_path}")
            return
 
         print(f"EXIF data for {image_path}:")
-        for key in metadata.exif_keys:
-            tag = metadata[key]
+        for key in im_metadata.exif_keys:
+            tag = im_metadata[key]
             print(f"  {key}: {tag.value}")
 
     except FileNotFoundError:
@@ -1359,7 +1360,7 @@ def takeImage(file_path, im_data):
     if IMAGE_GRAYSCALE:
         saveGrayscaleImage(file_path)
     if IMAGE_SHOW_EXIF_ON:
-       displayExifData(file_path) 
+       displayExifData(file_path)
     if IMAGE_ROTATION is not None:
         saveRotatateImage(file_path, IMAGE_ROTATION)
     if IMAGE_SHOW_STREAM:  # Show motion area on full image to align camera
