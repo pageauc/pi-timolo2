@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.13"  # Requires Latest 13.13 release of config.py
+PROG_VER = "ver 13.14"  # Requires Latest 13.13 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 import logging
 import os
@@ -45,7 +45,6 @@ from picamera2.encoders import H264Encoder, Quality
 from picamera2.outputs import FfmpegOutput
 from picamera2 import Picamera2, Preview
 from libcamera import controls, Transform
-
 
 # Disable picamera2 and libcamera logging. Some DEBUG messages may still appear
 logging.getLogger('picamera2').setLevel(logging.CRITICAL)
@@ -1354,7 +1353,11 @@ def takeImage(file_path, im_data):
 
     logging.info("ImageSize=({image_width}x{image_height}) vflip={IMAGE_VFLIP} hflip={IMAGE_HFLIP}")
     logging.info("px_ave={px_ave}, Exposure={exposure_microsec} microsec, Gain={analogue_gain} Auto is 0")
-    logging.info("Save Image to %s", file_path)
+    if IMAGE_FORMAT.upper() == ".JPG" or IMAGE_FORMAT.upper() == ".JPEG":
+        picam2.options['quality'] = IMAGE_JPG_QUAL  # Set jpg image quality
+        logging.info("Save Image to %s quality %i", file_path, IMAGE_JPG_QUAL)
+    else:
+        logging.info("Save Image to %s", file_path)        
     picam2.capture_file(file_path)      # Capture the image
     picam2.close()  # Close the camera instance
     if IMAGE_GRAYSCALE:
