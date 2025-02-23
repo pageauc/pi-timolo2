@@ -50,14 +50,19 @@ wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi
 
 if [ ! -f timolo2.sh ]; then     # check if local file exists.
     wget -O timolo2.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2.sh
+fi
+
 if [ ! -f supervisor/timolo2-cam.conf ]; then     # check if local file exists.
     wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
-
+fi
 
 if [ ! -f webserver.sh ]; then     # check if local file exists.
     wget -O webserver.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.sh
+fi
+
 if [ ! -f supervisor/timolo2-web.conf ]; then     # check if local file exists.
     wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
+fi
 
 wget -O supervisor/Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/Readme.md
 
