@@ -40,7 +40,9 @@ IMAGE_PIX_AVE_TIMER_SEC = 15 # Default= 15 Interval seconds for checking pixAver
 IMAGE_NO_NIGHT_SHOTS = False # Default= False True=No Night Images (Motion or Timelapse)
 IMAGE_NO_DAY_SHOTS = False   # Default= False True=No Day Images (Motion or Timelapse)
 IMAGE_SHOW_STREAM = False    # Default= False True=Show video stream motion tracking area on full size image.
-                             # Use to Align Camera for motion tracking.  Set to False when Alignment complete.
+IMAGE_SHOW_EXIF_ON = False   # Default= False True=Show image Exif metadata
+ 
+ # Use to Align Camera for motion tracking.  Set to False when Alignment complete.
 STREAM_WIDTH = 320           # Default= 320  Width of motion tracking stream detection area
 STREAM_HEIGHT = 240          # Default= 240  Height of motion tracking stream detection area
 STREAM_FPS = 20              # Default= 20 fps PiVideoStream setting.  Single core RPI suggest 15 fps

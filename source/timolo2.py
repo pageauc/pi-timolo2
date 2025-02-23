@@ -117,6 +117,7 @@ default_settings = {
     "IMAGE_NO_NIGHT_SHOTS": False,
     "IMAGE_NO_DAY_SHOTS": False,
     "IMAGE_SHOW_STREAM": False,
+    "IMAGE_SHOW_EXIF_ON": False,
     "STREAM_WIDTH": 320,
     "STREAM_HEIGHT": 240,
     "STREAM_FPS": 20,
@@ -588,8 +589,10 @@ def piCamFound():
 def getMaxResolution():
     try:
         # Run libcamera-hello to list camera details
-        result = subprocess.run(['libcamera-hello', '--list-cameras'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
+        result = subprocess.run(['libcamera-hello', '--list-cameras'], 
+                                 stdout=subprocess.PIPE, 
+                                 stderr=subprocess.PIPE, 
+                                 text=True)
         if result.returncode == 0:
             print(result.stdout)
 
@@ -1021,7 +1024,7 @@ def getCurrentCount(number_path, number_start):
                 # and try to extract most recent number file_counter
                 newest_file = max(glob.iglob(file_path), key=os.path.getctime)
                 write_count = newest_file[len(file_prefix) + 1 : newest_file.find(IMAGE_FORMAT)]
-            except:
+            except ValueError:
                 write_count = number_start
             try:
                 number_counter = int(write_count) + 1
@@ -1079,7 +1082,7 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
     try:  # Read exif data since ImageDraw does not save this metadata
         metadata = pyexiv2.ImageMetadata(image_name)
         metadata.read()
-    except:
+    except FileNotFoundError:
         pass
     draw = ImageDraw.Draw(im_draw)
     draw.text((im_x, im_y), image_text, text_foreground_colour, font=font)
@@ -1094,6 +1097,29 @@ def writeTextToImage(image_name, date_to_print, currentday_mode):
         logging.warning("Image EXIF Data Not Transferred.")
     logging.info("Saved %s", image_name)
 
+def displayExifData(image_path):
+    """Displays EXIF data of an image using pyexiv2.
+
+    Args:
+        image_path: Path to the image file.
+    """
+    try:
+        metadata = pyexiv2.ImageMetadata(image_path)
+        metadata.read()
+
+        if not metadata.exif_keys:
+           print(f"No EXIF data found in {image_path}")
+           return
+
+        print(f"EXIF data for {image_path}:")
+        for key in metadata.exif_keys:
+            tag = metadata[key]
+            print(f"  {key}: {tag.value}")
+
+    except FileNotFoundError:
+        print(f"Error: Image file not found at {image_path}")
+    except Exception as e:
+         print(f"An error occurred: {e}")
 
 # ------------------------------------------------------------------------------
 def writeCounter(file_counter, counter_path):
@@ -1146,11 +1172,8 @@ def postImageProcessing(
                 image_text_str = counter_str + dateTimeText
         else:
             image_text_str = dateTimeText
-        # Now put the image_text_str on the current image
-        #try:  # This will fail for a video file so pass
         writeTextToImage(file_name, image_text_str, currentday_mode)
-        #except:
-        #    pass
+
     # Process currentCount for next image if number sequence is enabled
     if number_on:
         file_counter += 1
@@ -1335,6 +1358,8 @@ def takeImage(file_path, im_data):
     picam2.close()  # Close the camera instance
     if IMAGE_GRAYSCALE:
         saveGrayscaleImage(file_path)
+    if IMAGE_SHOW_EXIF_ON:
+       displayExifData(file_path) 
     if IMAGE_ROTATION is not None:
         saveRotatateImage(file_path, IMAGE_ROTATION)
     if IMAGE_SHOW_STREAM:  # Show motion area on full image to align camera
@@ -1448,7 +1473,7 @@ def getSchedStart(date_to_check):
         try:
             # parse and convert string to date/time or return error
             good_datetime = parse(date_to_check)
-        except:
+        except ValueError:
             # Is there a colon indicating possible time format exists
             if ":" in date_to_check:
                 time_try = date_to_check[date_to_check.find(":") - 2 :]
@@ -1456,7 +1481,7 @@ def getSchedStart(date_to_check):
                 try:
                     # See if a valid time is found returns with current day
                     good_datetime = parse(time_try)
-                except:
+                except ValueError:
                     logging.error("Bad Date and/or Time Format %s", date_to_check)
                     logging.error(
                         "Use a Valid Date and/or Time "
@@ -1473,7 +1498,7 @@ def getSchedStart(date_to_check):
                     # parse for valid time
                     # returns current day with parsed time
                     good_datetime = parse(time_try)
-                except:
+                except ValueError:
                     pass  # Do Nothing
     return good_datetime
 
