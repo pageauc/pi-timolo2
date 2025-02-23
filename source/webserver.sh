@@ -3,11 +3,12 @@
 # You will then be able close the terminal session.
 # use the edit option and change autostart=true
 
-service_name="timolo2-web"
+user="pi"
+service_name="$user-timolo2-web"
+conf_file_dir="/home/$user/pi-timolo2/supervisor"
 conf_file_name="timolo2-web.conf"
-conf_file_dir="/home/pi/pi-timolo2/supervisor"
 
-# webserver.sh ver 13.01 written by Claude Pageau
+# webserver.sh ver 13.15 written by Claude Pageau
 echo "-----------------------------------------------"
 echo "$0 supervisorctl $1"
 
