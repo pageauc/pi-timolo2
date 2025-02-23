@@ -1,6 +1,6 @@
 #!/bin/bash
 # Convenient pi-timolo2-install.sh script written by Claude Pageau 1-Jul-2016
-ver="13.1"
+ver="13.15"
 progName=$(basename -- "$0")
 TIMOLO2_DIR='pi-timolo2'  # Default folder install location
 
@@ -36,8 +36,8 @@ INFO  : $progName $ver  written by Claude Pageau
 "
 echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
-timoloFiles=("menubox.sh" "timolo2.py" "timolo2.sh" "image-stitching" "config.cfg" "strmpilibcam.py" \
-"webserver.py" "webserver.sh" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
+timoloFiles=("menubox.sh" "timolo2.py" "image-stitching" "config.cfg" "strmpilibcam.py" \
+"webserver.py" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
 
 for fname in "${timoloFiles[@]}" ; do
 
@@ -48,8 +48,17 @@ done
 wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
 wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
 
-wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
-wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
+if [ ! -f timolo2.sh ]; then     # check if local file exists.
+    wget -O timolo2.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2.sh
+if [ ! -f supervisor/timolo2-cam.conf ]; then     # check if local file exists.
+    wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
+
+
+if [ ! -f webserver.sh ]; then     # check if local file exists.
+    wget -O webserver.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.sh
+if [ ! -f supervisor/timolo2-web.conf ]; then     # check if local file exists.
+    wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
+
 wget -O supervisor/Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/Readme.md
 
 wget -q --show-progress -nc https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
@@ -224,18 +233,18 @@ INFO  : $STATUS Complete ver 13.1
 -----------------------------------------------
 Minimal Instructions:
 1 - Run sudo raspi-config Interfacing Options and enable I2C and Pi Camera
-    make sure 
+    make sure
 
 2 - It is suggested you run sudo apt-get update and sudo apt-get upgrade
     Reboot RPI if there are significant Raspbian OS system updates.
 
 3 - If config.py already exists then latest file will be config.py.new
 
-4 - If using Bulleye run sudo raspi-config, Interface Options, 3. 
+4 - If using Bulleye run sudo raspi-config, Interface Options, 3.
     Make sure camera is NOT in Legacy mode. Test camera. See commands below
-	
+
 	sudo raspi-config              % Check System Options Bullseye Only
-	libcamera-hello --list-cameras 
+	libcamera-hello --list-cameras
 	libcamera-still -o sample.jpg  # you should see file if camera is working OK
 
 5 - You will need to create symlinks to enable supervisorctl operation per below.
@@ -244,7 +253,7 @@ Minimal Instructions:
     cd ~/pi-timolo2
     ./timolo.sh install
     ./webserver.sh install
-	
+
 6 - To Test Run pi-timolo2 execute the following commands in RPI SSH
     or terminal session. Default is Motion Track On and TimeLapse On
 
@@ -256,7 +265,7 @@ Minimal Instructions:
     cd ~/pi-timolo2
     ./menubox.sh
 
-  
+
     For help See https://github.com/pageauc/pi-timolo2/
 
     Good Luck Claude ...
