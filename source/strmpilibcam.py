@@ -32,9 +32,9 @@ class CamStream:
             self.retries -= 1
             if self.retries < 1:
                 import os
-                prog_path = os.path.abspath(__file__)              
+                prog_path = os.path.abspath(__file__)
                 print(f"""
-{prog_path}                
+{prog_path}
 ERROR: Problem Starting RPI Camera Stream Thread
 ------------------------------------------------
     RPI Camera Already in Use or has an Issue.
@@ -44,10 +44,10 @@ ERROR: Problem Starting RPI Camera Stream Thread
         ./timolo2.sh stop   # Run if supervisorctl status shows timolo2-cam in use
                               otherwise check if another process is using camera.
         ./timolo2.sh status # recheck status.
-        
+
     If status does not show anything, Try
 
-        pgrep -f timolo2
+        pgrep -f timolo
         sudo kill PID    # if PID reported by pgrep
 
     and Try Again.

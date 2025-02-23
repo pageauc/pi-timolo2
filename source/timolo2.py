@@ -554,13 +554,13 @@ def rpiCamInfo():
             result = subprocess.run([cam_hello_ver, '--list-cameras'],
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE, text=True)
-        except FileNotFoundError:                                     
+        except FileNotFoundError:
             logging.error(f"{cam_hello_ver} command Not Found.")
             logging.error("Are you running this on a Raspberry Pi with libcamera installed?")
             sys.exit(1)
     if result.returncode == 0:
         logging.info(f"Checking for RPI camera using {cam_hello_ver} --list-cameras")
-        print(result.stdout)            
+        print(result.stdout)
         sensor = None
         for line in result.stdout.splitlines():
             if "Available Pi Cameras:" in line:
@@ -2563,7 +2563,7 @@ def timolo():
                         )
 
 
-# ---------------------------------------------------b---------------------------
+# ------------------------------------------------------------------------------
 if __name__ == "__main__":
 
     cam_max_resolution = rpiCamInfo()
@@ -2572,7 +2572,7 @@ if __name__ == "__main__":
         image_height_max = cam_max_resolution[1]
         # Round image resolution to avoid picamera errors
         image_width = min(image_width, image_width_max)
-        image_height = min(image_height, image_height_max)  
+        image_height = min(image_height, image_height_max)
     checkConfig()
 
     if PANTILT_ON:
