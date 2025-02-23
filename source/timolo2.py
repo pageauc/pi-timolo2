@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.15"  # Requires Latest 13.13 release of config.py
+PROG_VER = "ver 13.16"  # Requires Latest 13.13 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 import logging
 import os
@@ -540,99 +540,81 @@ THRESHOLD_SENSITIVITY = 20  # OpenCV setting for difference image threshold
 
 
 # ------------------------------------------------------------------------------
-def piCamFound():
+def rpiCamInfo():
+    cam_hello_ver = 'rpicam-hello'
     try:
-        # Use libcamera-hello to check if the camera is detected
-        result = subprocess.run(['libcamera-hello', '--list-cameras'],
+        # Use rpicam-hello to check if the camera is detected
+        result = subprocess.run([cam_hello_ver, '--list-cameras'],
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE, text=True)
-        if result.returncode == 0:
-            sensor = None
-            for line in result.stdout.splitlines():
-                if "Available Pi Cameras:" in line:
-                    continue
-                if ":" in line:
-                    sensor = line.split()[2]  # Extract the sensor name
-                    break
-
-            if sensor:
-                # Map sensor to camera version
-                if sensor == "ov5647":
-                    pi_sensor = "ov5647"
-                    pi_ver = "V1"
-                elif sensor == "imx219":
-                    pi_sensor = "imx219"
-                    pi_ver = "V2"
-                elif sensor == "imx477":
-                    pi_sensor = "imx477"
-                    pi_ver = "HQ"
-                elif sensor == "imx708":
-                    pi_sensor = "imx708"
-                    pi_ver = "Arducam"
-                else:
-                    pi_sensor = "Unknown"
-                    pi_ver = "Unknown"
-                logging.info("Sensor: %s Ver: %s RPI Camera module", pi_sensor, pi_ver)
-                return True
+    except FileNotFoundError:
+        try:
+            cam_hello_ver = 'libcamera-hello'
+            # Use libcamera-hello to check if the camera is detected
+            result = subprocess.run([cam_hello_ver, '--list-cameras'],
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, text=True)
+        except FileNotFoundError:                                     
+            logging.error(f"{cam_hello_ver} command Not Found.")
+            logging.error("Are you running this on a Raspberry Pi with libcamera installed?")
+            sys.exit(1)
+    if result.returncode == 0:
+        logging.info(f"Checking for RPI camera using {cam_hello_ver} --list-cameras")
+        print(result.stdout)            
+        sensor = None
+        for line in result.stdout.splitlines():
+            if "Available Pi Cameras:" in line:
+                continue
+            if ":" in line:
+                sensor = line.split()[2]  # Extract the sensor name
+                break
+        if sensor:
+            # Map sensor to camera version
+            if sensor == "ov5647":
+                pi_sensor = "ov5647"
+                pi_ver = "V1"
+            elif sensor == "imx219":
+                pi_sensor = "imx219"
+                pi_ver = "V2"
+            elif sensor == "imx477":
+                pi_sensor = "imx477"
+                pi_ver = "HQ"
+            elif sensor == "imx708":
+                pi_sensor = "imx708"
+                pi_ver = "Arducam"
             else:
-                logging.error("No sensor information Found.")
-                return False
-        logging.error('Failed to find a Raspberry Pi Camera')
-        sys.exit(1)
-    except FileNotFoundError:
-        logging.error("libcamera-hello not found.\nAre you running this on a Raspberry Pi with libcamera installed?")
-        return False
-
-
-# ------------------------------------------------------------------------------
-def getMaxResolution():
-    try:
-        # Run libcamera-hello to list camera details
-        result = subprocess.run(['libcamera-hello', '--list-cameras'],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 text=True)
-        if result.returncode == 0:
-            print(result.stdout)
-
-            # Parse the output to find the maximum resolution
-            max_resolution = None
-            for line in result.stdout.splitlines():
-                if "[" in line and "x" in line and "]" in line:
-                    # Extract the resolution from the camera description line
-                    resolution_part = line.split("[")[1].split("]")[0]  # Extract the part inside square brackets
-                    if "x" in resolution_part:
-                        max_resolution = resolution_part
-                        break
-            # this is not used due to break above.  Rethinking
-            if max_resolution:
-                logging.info("%s", max_resolution )
-                cam_resolution = max_resolution.split('x')
-                try:
-                    im_w = int(cam_resolution[0])
-                    im_h = int(cam_resolution[1])
-                except ValueError:
-                    return None
-                return (im_w, im_h)
-            logging.warning("No Max resolution information Found.")
-            return None
+                pi_sensor = "Unknown"
+                pi_ver = "Unknown"
+            logging.info("Sensor: %s RPI %s Camera module", pi_sensor, pi_ver)
         else:
-            logging.error("Could Not Detect a RPI Camera.")
-            print(result.stderr)
-    except FileNotFoundError:
-        logging.error("libcamera-hello not found.\nAre you running this on a Raspberry Pi with libcamera installed?")
-    sys.exit(1)
+            logging.error("No sensor information Found.")
+            return None
 
-if piCamFound():
-    cam_max_resolution = getMaxResolution()
-    if cam_max_resolution is not None:
-        image_width_max = cam_max_resolution[0]
-        image_height_max = cam_max_resolution[1]
-        # Round image resolution to avoid picamera errors
-        image_width = min(image_width, image_width_max)
-        image_height = min(image_height, image_height_max)
-else:
-    sys.exit(1)
+        # Parse the output to find the maximum resolution
+        max_resolution = None
+        for line in result.stdout.splitlines():
+            if "[" in line and "x" in line and "]" in line:
+                # Extract the resolution from the camera description line
+                resolution_part = line.split("[")[1].split("]")[0]  # Extract the part inside square brackets
+                if "x" in resolution_part:
+                    max_resolution = resolution_part
+                    break
+        # this is not used due to break above.  Rethinking
+        if max_resolution:
+            logging.info("%s", max_resolution )
+            cam_resolution = max_resolution.split('x')
+            try:
+                im_w = int(cam_resolution[0])
+                im_h = int(cam_resolution[1])
+            except ValueError:
+                return None
+            return (im_w, im_h)
+        logging.warning("No Max resolution information Found.")
+        return None
+    else:
+        logging.error("Could Not Detect a RPI Camera.")
+        print(result.stderr)
+        sys.exit(1)
 
 
 # ------------------------------------------------------------------------------
@@ -1357,7 +1339,7 @@ def takeImage(file_path, im_data):
         picam2.options['quality'] = IMAGE_JPG_QUAL  # Set jpg image quality
         logging.info("Save Image to %s quality %i", file_path, IMAGE_JPG_QUAL)
     else:
-        logging.info("Save Image to %s", file_path)        
+        logging.info("Save Image to %s", file_path)
     picam2.capture_file(file_path)      # Capture the image
     picam2.close()  # Close the camera instance
     if IMAGE_GRAYSCALE:
@@ -2584,6 +2566,13 @@ def timolo():
 # ---------------------------------------------------b---------------------------
 if __name__ == "__main__":
 
+    cam_max_resolution = rpiCamInfo()
+    if cam_max_resolution is not None:
+        image_width_max = cam_max_resolution[0]
+        image_height_max = cam_max_resolution[1]
+        # Round image resolution to avoid picamera errors
+        image_width = min(image_width, image_width_max)
+        image_height = min(image_height, image_height_max)  
     checkConfig()
 
     if PANTILT_ON:

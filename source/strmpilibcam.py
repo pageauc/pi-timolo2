@@ -6,7 +6,6 @@ import time
 import sys
 from threading import Thread
 
-
 class CamStream:
     '''
     Create a picamera2 libcamera in memory image stream that
@@ -32,17 +31,33 @@ class CamStream:
         while self.retries > 0:
             self.retries -= 1
             if self.retries < 1:
-                print("ERROR: Problem Starting RPI Camera Stream Thread")
-                print("       RPI Camera Already in Use.\n")
-                print("       Run ./timolo2.sh status to see if supervisorctl Using.")
-                print("       If so Try command\n")
-                print("       ./timolo2.sh stop\n")
-                print("       and Try Again. Otherwise Check")
-                print("       for something else using camera.")
                 import os
-                prog_path = os.path.abspath(__file__)
-                print(f"Exiting {prog_path}")
-                print("Bye ...")
+                prog_path = os.path.abspath(__file__)              
+                print(f"""
+{prog_path}                
+ERROR: Problem Starting RPI Camera Stream Thread
+------------------------------------------------
+    RPI Camera Already in Use or has an Issue.
+    To see if supervisorctl is using camera, Run command below.
+
+        ./timolo2.sh status
+        ./timolo2.sh stop   # Run if supervisorctl status shows timolo2-cam in use
+                              otherwise check if another process is using camera.
+        ./timolo2.sh status # recheck status.
+        
+    If status does not show anything, Try
+
+        pgrep -f timolo2
+        sudo kill PID    # if PID reported by pgrep
+
+    and Try Again.
+    If still not working. Check for something else using pi camera.
+    Try htop command. Might be another app running in foreground or background.
+    If all else fails Try a Reboot.
+------------------------------------------------
+Bye
+Wait ...
+""")
                 sys.exit(1)
             try:
                 time.sleep(4) # add a wait
