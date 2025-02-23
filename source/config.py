@@ -30,7 +30,7 @@ IMAGE_NAME_PREFIX = 'cam1-'  # Default= 'cam1-' for all image file names. Eg gar
 IMAGE_WIDTH = 1280           # Default= 1280 Full Size Image Width in px
 IMAGE_HEIGHT = 768           # Default= 720  Full Size Image Height in px
 IMAGE_FORMAT = ".jpg"        # Default= ".jpg"  image Formats .jpeg .png .gif .bmp
-IMAGE_JPG_QUAL = 95          # Default= 95 jpg Encoder Quality Values 1(low)-100(high min compression) 0=85
+IMAGE_JPG_QUAL = 95          # Default= 95 jpg Encoder Quality 1(low)-100(high) 0=85
 IMAGE_ROTATION = None        # Default= None  Rotates image. Valid values: None, 0, 90, 180, 270
 IMAGE_VFLIP = True           # Default= False True Flips image Vertically
 IMAGE_HFLIP = True           # Default= False True Flips image Horizontally

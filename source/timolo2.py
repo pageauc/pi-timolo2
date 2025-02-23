@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.14"  # Requires Latest 13.13 release of config.py
+PROG_VER = "ver 13.15"  # Requires Latest 13.13 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 import logging
 import os
@@ -606,7 +606,7 @@ def getMaxResolution():
                         break
             # this is not used due to break above.  Rethinking
             if max_resolution:
-                logging.info("%s",max_resolution )
+                logging.info("%s", max_resolution )
                 cam_resolution = max_resolution.split('x')
                 try:
                     im_w = int(cam_resolution[0])
@@ -744,7 +744,7 @@ def subDirCheckMaxHrs(dir_path, hrs_max, filename_prefix):
     dir_age_hours = float(days * 24 + (seconds / 3600.0))  # convert to hours
     if dir_age_hours > hrs_max:  # See if hours are exceeded
         make_new_dir = True
-        logging.info("MaxHrs {dir_age_hours} Exceeds {hrs_max} for {dir_path}")
+        logging.info(f"MaxHrs {dir_age_hours} Exceeds {hrs_max} for {dir_path}")
     else:
         make_new_dir = False
     return make_new_dir
@@ -759,7 +759,7 @@ def subDirChecks(max_hours, max_files, dir_path, filename_prefix):
     else:
         sub_dir_path = getLastSubdir(dir_path)
         if sub_dir_path == dir_path:  # No subDir Found
-            logging.info("No sub folders Found in %s",dir_path )
+            logging.info("No sub folders Found in %s", dir_path )
             sub_dir_path = createSubdir(dir_path, filename_prefix)
         # Check MaxHours Folder Age Only
         elif max_hours > 0 and max_files < 1:
@@ -998,7 +998,7 @@ def getCurrentCount(number_path, number_start):
     """
     if not os.path.isfile(number_path):
         # Create numberPath file if it does not exist
-        logging.info("Creating New File {number_path} number_start= {number_start}")
+        logging.info(f"Creating New File {number_path} number_start= {number_start}")
         open(number_path, "w").close()
         f = open(number_path, "w+")
         f.write(str(number_start))
@@ -1030,7 +1030,7 @@ def getCurrentCount(number_path, number_start):
             except ValueError:
                 number_counter = number_start
             logging.warning(
-                "Found Invalid Data in {number_path} Resetting Counter to {number_counter}",
+                f"Found Invalid Data in {number_path} Resetting Counter to {number_counter}",
             )
         f = open(number_path, "w+")
         f.write(str(number_counter))
@@ -1351,9 +1351,9 @@ def takeImage(file_path, im_data):
         logging.info(f'Low Light {px_ave}/{DARK_START_PXAVE} px_ave')
         time.sleep(analogue_gain) # Allow time for camera to adjust for long exposure
 
-    logging.info("ImageSize=({image_width}x{image_height}) vflip={IMAGE_VFLIP} hflip={IMAGE_HFLIP}")
-    logging.info("px_ave={px_ave}, Exposure={exposure_microsec} microsec, Gain={analogue_gain} Auto is 0")
-    if IMAGE_FORMAT.upper() == ".JPG" or IMAGE_FORMAT.upper() == ".JPEG":
+    logging.info(f"ImageSize=({image_width}x{image_height}) vflip={IMAGE_VFLIP} hflip={IMAGE_HFLIP}")
+    logging.info(f"px_ave={px_ave}, Exposure={exposure_microsec} microsec, Gain={analogue_gain} Auto is 0")
+    if (IMAGE_FORMAT.upper() == ".JPG" or IMAGE_FORMAT.upper() == ".JPEG") and IMAGE_JPG_QUAL > 0:
         picam2.options['quality'] = IMAGE_JPG_QUAL  # Set jpg image quality
         logging.info("Save Image to %s quality %i", file_path, IMAGE_JPG_QUAL)
     else:
@@ -1566,7 +1566,7 @@ def takeMiniTimelapse(mo_path, filename_prefix, num_on, motion_num_count, curren
             image_count += 1
             saveRecent(MOTION_RECENT_MAX, MOTION_RECENT_DIR, file_name, filename_prefix)
             time.sleep(MOTION_TRACK_MINI_TL_TIMER_SEC)
-    logging.info("END - Total {image_count} Images in {timelapse_diff} sec\n")
+    logging.info(f"END - Total {image_count} Images in {timelapse_diff} sec\n")
 
 
 
@@ -1592,7 +1592,7 @@ def takeVideo(file_name, vid_seconds, vid_w=1280, vid_h=720, vid_fps=25):
             try:
                 picam2.start_recording(encoder, output)
             except RuntimeError:
-                logging.warning("Camera Error. Retry {vid_retries+1} of {vid_total_retries} Wait ...")
+                logging.warning(f"Camera Error. Retry {vid_retries+1} of {vid_total_retries} Wait ...")
                 time.sleep(5)
                 continue
             break
@@ -1646,7 +1646,7 @@ def takePantiltSequence(file_name, DAY_MODE, num_count, num_path, im_data):
                      PANTILT_SEQ_DAYONLY_ON, DAY_MODE)
         return
     elif not PANTILT_ON:
-        logging.error(f'takePantiltSequence Requires PANTILT_ON=True. Edit in Config.py')
+        logging.error('takePantiltSequence Requires PANTILT_ON=True. Edit in Config.py')
         return
     seq_prefix = PANTILT_SEQ_IMAGE_PREFIX + IMAGE_NAME_PREFIX
     if MOTION_TRACK_ON and MOTION_TRACK_PANTILT_SEQ_ON:
@@ -1659,8 +1659,8 @@ def takePantiltSequence(file_name, DAY_MODE, num_count, num_path, im_data):
     elif PANTILT_SEQ_ON:
         seq_prefix = PANTILT_SEQ_IMAGE_PREFIX + IMAGE_NAME_PREFIX
         logging.info("MOTION_TRACK_ON={MOTION_TRACK_ON}, TIMELAPSE_ON={TIMELAPSE_ON}")
-        logging.info("PANTILT_SEQ_ON={PANTILT_SEQ_ON} Take Sequence Every {PANTILT_SEQ_TIMER_SEC} sec")
-        logging.info("Start PanTilt Images at Stops {PANTILT_SEQ_STOPS}")
+        logging.info(f"PANTILT_SEQ_ON={PANTILT_SEQ_ON} Take Sequence Every {PANTILT_SEQ_TIMER_SEC} sec")
+        logging.info(f"Start PanTilt Images at Stops {PANTILT_SEQ_STOPS}")
     # initialize file_counter to ensure each image file_name is unique
     pantilt_seq_image_num = 0
 
