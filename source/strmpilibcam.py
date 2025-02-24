@@ -1,4 +1,4 @@
-# Written by Claude Pageau 18 Nov 2022
+# Written by Claude Pageau Feb-2025
 # Import required libraries
 from picamera2 import Picamera2
 from libcamera import Transform
