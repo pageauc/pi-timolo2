@@ -60,7 +60,6 @@ Wait ...
 """)
                 sys.exit(1)
             try:
-                time.sleep(4) # add a wait
                 self.picam2 = Picamera2() # initialize the camera
                 # self.picam2.set_logging(Picamera2.ERROR)
                 self.picam2.configure(self.picam2.create_preview_configuration(
@@ -70,12 +69,12 @@ Wait ...
                                                           hflip=self.hflip)))
             except RuntimeError:
                 print(f'WARN : Camera Error. Retrying {self.retries}')
-                time.sleep(4)
+                self.picam2.close()
                 continue
             break
 
         self.picam2.start()
-        time.sleep(3) # Allow camera time to warm up
+        time.sleep(2) # Allow camera time to warm up
 
         # initialize variables
         self.thread = None  # Initialize Thread variable
