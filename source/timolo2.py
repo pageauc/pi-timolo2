@@ -648,7 +648,7 @@ def checkConfig():
 
 # ------------------------------------------------------------------------------
 def getLastSubdir(dir_path):
-    """Scan for directories and return most recent"""
+    # Scan for directories and return most recent
     dir_list = [
         name
         for name in os.listdir(dir_path)
@@ -1559,30 +1559,29 @@ def takeVideo(file_name, vid_seconds, vid_w=1280, vid_h=720, vid_fps=25):
     if MOTION_VIDEO_ON or VIDEO_REPEAT_ON:
         file_path_mp4 = os.path.join(os.path.dirname(file_name),
                                    os.path.splitext(os.path.basename(file_name))[0] + ".mp4")
-        picam2 = Picamera2()
-        picam2.configure(picam2.create_video_configuration({"size": (vid_w, vid_h)},
-                                                           transform=Transform(vflip=IMAGE_VFLIP,
-                                                                               hflip=IMAGE_HFLIP)))
-        picam2.set_controls({"FrameRate": vid_fps})
-        encoder = H264Encoder(10000000)
-        output = FfmpegOutput(file_path_mp4)
-
         vid_total_retries = 4
         vid_retries = vid_total_retries
         while vid_retries > 0:
+            picam2 = Picamera2()
+            picam2.configure(picam2.create_video_configuration({"size": (vid_w, vid_h)},
+                                                               transform=Transform(vflip=IMAGE_VFLIP,
+                                                                                   hflip=IMAGE_HFLIP)))
+            picam2.set_controls({"FrameRate": vid_fps})
+            encoder = H264Encoder(10000000)
+            output = FfmpegOutput(file_path_mp4)
+
             vid_retries -=1
             try:
                 picam2.start_recording(encoder, output)
             except RuntimeError:
                 logging.warning(f"Camera Error. Retry {vid_retries+1} of {vid_total_retries} Wait ...")
-                time.sleep(5)
+                picam2.close()
                 continue
             break
 
         time.sleep(vid_seconds)
         picam2.stop_recording()
         picam2.close()
-        time.sleep(2)  # allow time to close camera
         if MOTION_RECENT_MAX:
             logging.info("Saved Motion Tracking Video to %s", file_path_mp4)
         else:
@@ -2147,7 +2146,7 @@ def timolo():
                         vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                                        vflip=IMAGE_VFLIP,
                                        hflip=IMAGE_HFLIP).start()
-                        time.sleep(1)  # Allow camera to warm up and stream to start
+                        time.sleep(.5)  # Allow camera to warm up and stream to start
                     next_seq_time = pantilt_seq_timer + datetime.timedelta(
                         seconds=PANTILT_SEQ_TIMER_SEC
                     )
@@ -2286,7 +2285,7 @@ def timolo():
                         vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                                        vflip=IMAGE_VFLIP,
                                        hflip=IMAGE_HFLIP).start()
-                        time.sleep(1)  # Allow camera to warm up and stream to start
+                        time.sleep(.5)  # Allow camera to warm up and stream to start
                     if TIMELAPSE_MAX_FILES > 0:
                         deleteOldFiles(TIMELAPSE_MAX_FILES, TIMELAPSE_DIR, tl_prefix)
 
@@ -2497,7 +2496,7 @@ def timolo():
                     vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                                          vflip=IMAGE_VFLIP,
                                          hflip=IMAGE_HFLIP).start()
-                    time.sleep(1)
+                    time.sleep(.5)
                     image1 = vs.read()
                     image2 = image1
                     grayimage1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
@@ -2538,7 +2537,7 @@ def timolo():
                         vs = CamStream(size=(STREAM_WIDTH, STREAM_HEIGHT),
                                        vflip=IMAGE_VFLIP,
                                        hflip=IMAGE_HFLIP).start()
-                        time.sleep(1)
+                        time.sleep(.5)
                     next_pano_time = pano_timer + datetime.timedelta(
                         seconds=PANO_TIMER_SEC
                     )

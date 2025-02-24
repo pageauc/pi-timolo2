@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will run the webserver.py as a background task
+# This script will run the pi-timolo2.py as a background task
 # You will then be able close the terminal session.
 # use the edit option and change autostart=true
 
@@ -14,9 +14,11 @@ echo "$0 supervisorctl $1"
 
 if [ "$1" = "start" ]; then
     sudo supervisorctl start $service_name
+	exit 0
 
 elif [ "$1" = "stop" ]; then
     sudo supervisorctl stop $service_name
+	exit 0
 
 elif [ "$1" = "restart" ]; then
     sudo supervisorctl restart $service_name
@@ -30,7 +32,7 @@ elif [ "$1" = "edit" ]; then
     sudo supervisorctl reread
     sudo supervisorctl update
     echo "Wait ..."
-    sleep 5
+    sleep 4
     sudo supervisorctl status $service_name
     exit 0
 
@@ -42,8 +44,8 @@ elif [ "$1" = "log" ]; then
 
 elif [ "$1" = "install" ]; then
     # Run this option to initialize supervisor.service
-    echo "install: sudo ln -s $conf_file_dir /etc/supervisor/conf.d"
-    sudo ln -s $conf_file_dir/$conf_file_name /etc/supervisor/conf.d
+    echo "install: ln -s $conf_file_dir/$conf_file_name /etc/supervisor/conf.d/$conf_file_name"
+    sudo ln -s $conf_file_dir/$conf_file_name /etc/supervisor/conf.d/$conf_file_name
     ls -al /etc/supervisor/conf.d
 	sudo supervisorctl reread
 	sleep 4
@@ -51,10 +53,12 @@ elif [ "$1" = "install" ]; then
 
 elif [ "$1" = "uninstall" ]; then
     sudo supervisorctl stop $service_name
-    sleep 5
-    sudo rm /etc/supervisor/conf.d/$conf_file_name
+    sleep 4
+	echo "rm sudo /etc/supervisor/conf.d/$conf_file_name"
+    sudo rm sudo /etc/supervisor/conf.d/$conf_file_name
     ls -al /etc/supervisor/conf.d
     sudo supervisorctl reread
+    sleep 4
     sudo supervisorctl update
 
 elif [ "$1" = "upgrade" ]; then
@@ -62,7 +66,7 @@ elif [ "$1" = "upgrade" ]; then
     exit 0
 else
    echo "
-Usage:  [Option]
+Usage: ./$(basename "$0") [Option]
 
   Options:
   start        Start supervisor service
@@ -76,12 +80,11 @@ Usage:  [Option]
   upgrade      Upgrade pi-timolo2 files from GitHub
   help         Display Usage message and Status
 
-  Example:  ./webserver.sh status
+  Example:  ./$(basename "$0") status
 "
 fi
 echo "Wait ...
 "
-sleep 5
 sudo supervisorctl status all
 echo "Done
 "
