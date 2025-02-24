@@ -100,9 +100,9 @@ function do_makevideo_config ()
 function do_makevideo_menu ()
 {
   SELECTION=$(whiptail --title "makevideo.sh Menu" --menu "Arrow/Enter to Run or Tab Key" 20 67 7 --cancel-button Back --ok-button Select \
-  "a RUN" "makevideo.sh - motion or timelapse jpg's to mp4 video" \
-  "b EDIT" "nano makevideo.conf  makevideo.sh & config.sh Settings" \
-  "c VIEW" "makevideo.conf file  makevideo.sh & config.sh Settings" \
+  "a RUN" "makevideo.sh - Make MP4 video from Timelapse, Motion jpg's" \
+  "b EDIT" "nano makevideo.conf for makevideo.sh" \
+  "c VIEW" "makevideo.conf for makevideo.sh" \
   "q BACK" "To Main Menu"  3>&1 1>&2 2>&3)
 
   RET=$?
