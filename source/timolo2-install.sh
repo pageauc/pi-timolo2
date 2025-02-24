@@ -81,7 +81,7 @@ else
 fi
 
 if [ ! -f rclone-example.sh ] ; then
-    wget -O rclone-example.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/plugins/rclone-security-sync-recent.sh
+    wget -O rclone-example.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/plugins/rclone-mo-sync-recent.sh
 fi
 
 chmod +x *py

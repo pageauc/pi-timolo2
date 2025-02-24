@@ -15,7 +15,7 @@ echo "$progName $ver  written by Claude Pageau"
 
 lockFileCheck=true      # true= Checks for pi-timolo.sync file. false = No Check (case sensitive)
 rcloneName="gdmedia"     # Name of Remote Storage Service
-syncRoot="/home/pi/pi-timolo"   # Root Folder to Start
+syncRoot="/home/pi/pi-timolo2"   # Root Folder to Start
 localDir="media/motion"         # Source Folder on Local
 remoteDir="mycam/motion"        # Destination Folder on Remote
 rcloneParam="sync"       # rclone option to perform  Eg  sync, copy, move
