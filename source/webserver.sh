@@ -34,6 +34,12 @@ elif [ "$1" = "edit" ]; then
     sudo supervisorctl status $service_name
     exit 0
 
+elif [ "$1" = "log" ]; then
+    tail -n 200 /var/log/$service_name.log
+    echo "----------------------------------------"
+    echo "tail -n 200 /var/log/$service_name.log"
+    exit 0
+
 elif [ "$1" = "install" ]; then
     # Run this option to initialize supervisor.service
     echo "install: sudo ln -s $conf_file_dir /etc/supervisor/conf.d"
@@ -64,6 +70,7 @@ Usage:  [Option]
   restart      restart supervisor service
   status       Status of supervisor service
   edit         nano edit $conf_file_dir
+  log          tail -n 200 /var/log/$service_name.log
   install      Install symbolic link for webserver supervisor service
   uninstall    Uninstall symbolic link for webserver supervisor service
   upgrade      Upgrade pi-timolo2 files from GitHub
