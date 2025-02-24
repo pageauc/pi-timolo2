@@ -1,6 +1,6 @@
 #!/bin/bash
 # Convenient pi-timolo2-install.sh script written by Claude Pageau 1-Jul-2016
-ver="13.15"
+ver="13.16"
 progName=$(basename -- "$0")
 TIMOLO2_DIR='pi-timolo2'  # Default folder install location
 
@@ -213,10 +213,8 @@ if [ "$DIR" != "$INSTALL_PATH" ]; then
 fi
 
 # cleanup old files from previous versions of install
-cleanup_files=("get-pip.py" "gdrive" "install.sh" "makemovie.sh" "makedailymovie.sh" "pancam.py" "pancam.pyc" \
-"convid.conf" "convid.conf.orig" "convid.conf.prev" "convid.conf.1" "convid.conf.new" \
-"makevideo.conf" "makevideo.conf.orig" "makevideo.conf.prev" "makevideo.conf.1" \
-"makevideo.conf.new" "sync.sh" "timolo-install.sh" "rclone-sync-new.sh" "rclone-videos-new.sh")
+cleanup_files=("get-pip.py" "gdrive" "makevideo.conf.prev"  \
+"sync.sh" "rclone-sync-new.sh" "rclone-videos-new.sh")
 
 for fname in "${cleanup_files[@]}" ; do
     if [ -f $fname ] ; then
