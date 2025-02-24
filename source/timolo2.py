@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.16"  # Requires Latest 13.13 release of config.py
+PROG_VER = "ver 13.17"  # Requires Latest 13.13 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 import logging
 import os
@@ -1318,7 +1318,7 @@ def takeImage(file_path, im_data):
                 logging.error('Retries Exceeded. Exiting Due to Camera Problem.')
                 sys.exit(1)
             else:
-                time.sleep(4)
+                picam2.close()
                 continue
         break
     picam2.set_controls({"ExposureTime": exposure_microsec,
