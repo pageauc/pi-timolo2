@@ -89,10 +89,10 @@ function do_makevideo ()
 #------------------------------------------------------------------------------
 function do_makevideo_config ()
 {
-  if [ -f $DIR/video.conf ] ; then
-     /bin/nano $DIR/video.conf
+  if [ -f $DIR/makevideo.conf ] ; then
+     /bin/nano $DIR/makevideo.conf
   else
-     whiptail --msgbox "ERROR - $DIR/video.conf File Not Found. Please Investigate." 20 60 1
+     whiptail --msgbox "ERROR - $DIR/makevideo.conf File Not Found. Please Investigate." 20 60 1
   fi
 }
 
@@ -101,8 +101,8 @@ function do_makevideo_menu ()
 {
   SELECTION=$(whiptail --title "makevideo.sh Menu" --menu "Arrow/Enter to Run or Tab Key" 20 67 7 --cancel-button Back --ok-button Select \
   "a RUN" "makevideo.sh - motion or timelapse jpg's to mp4 video" \
-  "b EDIT" "nano video.conf  makevideo.sh & config.sh Settings" \
-  "c VIEW" "video.conf file  makevideo.sh & config.sh Settings" \
+  "b EDIT" "nano makevideo.conf  makevideo.sh & config.sh Settings" \
+  "c VIEW" "makevideo.conf file  makevideo.sh & config.sh Settings" \
   "q BACK" "To Main Menu"  3>&1 1>&2 2>&3)
 
   RET=$?
@@ -115,76 +115,12 @@ function do_makevideo_menu ()
       b\ *) do_makevideo_config
             do_makevideo_menu ;;
       c\ *) clear
-            more $DIR/video.conf
+            more $DIR/makevideo.conf
             do_anykey
             do_makevideo_menu ;;
       q\ *) do_main_menu ;;
       *) whiptail --msgbox "Programmer error: unrecognised option" 10 65 1 ;;
     esac || whiptail --msgbox "There was an error running selection $SELECTION" 10 65 1
-  fi
-}
-
-#------------------------------------------------------------------------------
-function do_join_video ()
-{
-  if [ -e convid.sh ] ; then
-     ./convid.sh join
-     do_anykey
-     do_convid_menu
-  else
-     whiptail --msgbox "ERROR - convid.sh file Not Found. Please Investigate." 20 65 1
-  fi
-}
-
-#------------------------------------------------------------------------------
-function do_convert_video ()
-{
-  if [ -e convid.sh ] ; then
-     ./convid.sh convert
-     do_anykey
-     do_convid_menu
-  else
-     whiptail --msgbox "ERROR - convid.sh file Not Found. Please Investigate." 20 65 1
-  fi
-}
-
-#------------------------------------------------------------------------------
-function do_convid_config ()
-{
-    if [ -f $DIR/video.conf ] ; then
-        /bin/nano $DIR/video.conf
-    else
-        whiptail --msgbox "ERROR - $DIR/video.conf File Not Found. Please Investigate." 20 65 1
-    fi
-}
-
-#------------------------------------------------------------------------------
-function do_convid_menu ()
-{
-
-  VID_SEL=$( whiptail --title "convid.sh Menu" --menu "Arrow/Enter to Run or Tab Key" 0 0 0 --cancel-button Back --ok-button Select \
-  "a JOIN" "JOIN multiple motion MP4 videos into larger videos" \
-  "b CONVERT" "motion h264 files to MP4 videos" \
-  "c EDIT" "nano video.conf  makevideo.sh & config.sh Settings" \
-  "d VIEW" "video.conf  makevideo.sh & config.sh Settings" \
-  "q BACK" "To Main Menu" 3>&1 1>&2 2>&3 )
-
-  RET=$?
-  if [ $RET -eq 1 ]; then
-    do_main_menu
-  elif [ $RET -eq 0 ]; then
-    case "$VID_SEL" in
-      a\ *) do_join_video ;;
-      b\ *) do_convert_video ;;
-      c\ *) do_convid_config
-            do_convid_menu ;;
-      d\ *) clear
-            cat $DIR/video.conf
-            do_anykey
-            do_convid_menu ;;
-      q\ *) do_main_menu ;;
-      *) whiptail --msgbox "Programmer error: unrecognised option" 20 60 1 ;;
-    esac || whiptail --msgbox "There was an error running selection $SELECTION" 20 60 1
   fi
 }
 
@@ -425,8 +361,8 @@ function do_settings_menu ()
   SET_SEL=$( whiptail --title "Settings Menu" --menu "Arrow/Enter Selects or Tab Key" 0 0 0 --ok-button Select --cancel-button Back \
   "a EDIT" "nano config.py for pi-timolo & webserver" \
   "b VIEW" "config.py for pi-timolo & webserver" \
-  "c EDIT" "nano video.conf  makevideo.sh & config.sh Settings" \
-  "d VIEW" "video.conf  makevideo.sh & config.sh Settings" \
+  "c EDIT" "nano makevideo.conf  makevideo.sh & config.sh Settings" \
+  "d VIEW" "makevideo.conf  makevideo.sh & config.sh Settings" \
   "q BACK" "To Main Menu" 3>&1 1>&2 2>&3 )
 
   RET=$?
@@ -445,7 +381,7 @@ function do_settings_menu ()
       c\ *) do_makevideo_config
             do_settings_menu ;;
       d\ *) clear
-            cat $DIR/video.conf
+            cat $DIR/makevideo.conf
             do_anykey
             do_settings_menu ;;
       q\ *) clear
@@ -609,13 +545,12 @@ function do_main_menu ()
   "c SETTINGS" "Change Program Configuration Files" \
   "d PLUGINS" "Edit Plugin Files" \
   "e CREATE" "MP4 Timelapse Video from jpg Images" \
-  "f CONVERT" "Video from h264 to MP4 or Join multiple MP4 Videos" \
-  "g RCLONE" "Manage File Transfers to Remote Storage" \
-  "h REMOTE" "Manage pi-timolo2 using watch-app.sh" \
-  "i UPGRADE" "Program Files from GitHub.com" \
-  "j STATUS" "CPU $temp   Select to Refresh" \
-  "k HELP" "View Readme.md" \
-  "l ABOUT" "menubox.sh" \
+  "f RCLONE" "Manage File Transfers to Remote Storage" \
+  "g REMOTE" "Manage pi-timolo2 using watch-app.sh" \
+  "h UPGRADE" "Program Files from GitHub.com" \
+  "i STATUS" "CPU $temp   Select to Refresh" \
+  "j HELP" "View Readme.md" \
+  "k ABOUT" "menubox.sh" \
   "q QUIT" "Exit This Menu Program"  3>&1 1>&2 2>&3)
 
   RET=$?
@@ -628,17 +563,16 @@ function do_main_menu ()
       c\ *) do_settings_menu ;;
       d\ *) do_plugins_menu ;;
       e\ *) do_makevideo_menu ;;
-      f\ *) do_convid_menu ;;
-      g\ *) do_sync_menu ;;
-      h\ *) do_watch_menu ;;
-      i\ *) clear
+      f\ *) do_sync_menu ;;
+      g\ *) do_watch_menu ;;
+      h\ *) clear
             do_upgrade ;;
-      j\ *) clear
+      i\ *) clear
             do_main_menu ;;
-      k\ *) pandoc -f markdown -t plain  Readme.md | more
+      j\ *) pandoc -f markdown -t plain  Readme.md | more
             do_anykey
             do_main_menu ;;
-      l\ *) do_about
+      k\ *) do_about
             do_main_menu ;;
       q\ *) clear
             exit ;;
