@@ -6,7 +6,7 @@
 # initialize script variables
 login_id=$( whoami )
 timolo2_dir=$( pwd )
-service_name="timolo2-web"
+service_name="timolo2-cam"
 conf_file_dir="/home/$login_id/pi-timolo2/supervisor"
 conf_file_name="timolo2-cam.conf"
 
