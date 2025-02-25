@@ -37,7 +37,7 @@ INFO  : $progName $ver  written by Claude Pageau
 echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
 timoloFiles=("menubox.sh" "timolo2-cam.py" "image-stitching" "config.cfg" \
-"timolo2-webs.py" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
+"timolo2-web.py" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
 
 for fname in "${timoloFiles[@]}" ; do
     wget_output=$(wget -O $fname -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
@@ -46,7 +46,7 @@ done
 wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
 wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
 
-if [ ! -f timolo2.sh ]; then     # check if local file exists.
+if [ ! -f timolo2-cam.sh ]; then     # check if local file exists.
     wget -O timolo2-cam.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-cam.sh
 fi
 
