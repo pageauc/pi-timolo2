@@ -7,7 +7,7 @@ Also PanTilt Pano Image Stiching, PanTilt Sequence, Video Repeat, Quick Timelaps
 
 pi-timolo2 runs using libcamera and picamera2 python library, Bullseye (libcamera config), Bookworm Raspberry Pi OS and later.
 This release points to original pi-timolo wiki that may sometimes not be relavent to pi-timolo2 features.
-pi-timolo2 uses supervisor to launch timolo2.py or webserver.py in background.  Use timolo2.sh, webserver.sh to manage (see help eg ***./timolo2.sh help***)
+pi-timolo2 uses supervisor to launch timolo2-cam.py or timolo2-web.py in background.  Use timolo2.sh, webserver.sh to manage (see help eg ***./timolo2.sh help***)
 or menubox.sh when supervisor processes installed.   
 Low Light uses a different algorithm based on a video stream thread frame px average below ***DARK_START_PXAVE*** per config.py setting.  Seems to woek ok
 Consider this release Beta.  I am still testing and updating.  Issues are welcome
@@ -70,7 +70,7 @@ An upgrade will not overwrite configuration files.
     or terminal session. Default is Motion Track On and TimeLapse On
 
     cd ~/pi-timolo2
-    ./timolo2.py
+    ./timolo2-cam.py
 
 6 - To manage pi-timolo2, Run menubox.sh per commands below
 
@@ -107,7 +107,7 @@ the pi-timolo2-install.sh script code before executing.
     
 ## Menubox
 timolo2 has a whiptail administration menu system. The menu's allow
-start/stop of timolo2.py and/or webserver.py as background tasks, as well as
+start/stop of timolo2-cam.py and/or timolo2-web.py as background tasks, as well as
 editing configuration files, making timelapse videos from jpg images, converting or joining mp4 files Etc.    
 
 To run menubox.sh from ssh console or terminal session execute commands below.
@@ -118,14 +118,14 @@ To run menubox.sh from ssh console or terminal session execute commands below.
 ![menubox main menu](menubox.png)
  
 ## Webserver
-I have also written a standalone LAN based webserver.py to allow easy access to pi-timolo image and video files
+I have also written a standalone LAN based timolo2-web.py to allow easy access to pi-timolo image and video files
 on the Raspberry from another LAN computer web browser.  There is no setup required but the display
 settings can be customized via variables in the config.py file or via menubox admin menuing.     
-***NOTE:*** webserver.py is normally run in background using menubox.sh, webserver.sh using supervisor    
+***NOTE:*** timolo2-web.py is normally run in background using menubox.sh, webserver.sh using supervisor    
 To Test Run from ssh console or terminal session. 
     
     cd ~/pi-timolo2
-    ./webserver.py
+    ./timolo2-web.py
 
 ![webserver browser screen shot](webserver.jpg)
 

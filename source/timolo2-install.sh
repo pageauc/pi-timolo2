@@ -36,28 +36,26 @@ INFO  : $progName $ver  written by Claude Pageau
 "
 echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
-timoloFiles=("menubox.sh" "timolo2.py" "image-stitching" "config.cfg" "strmpilibcam.py" \
-"webserver.py" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
+timoloFiles=("menubox.sh" "timolo2-cam.py" "image-stitching" "config.cfg" "strmpilibcam.py" \
+"timolo2-webs.py" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
 
 for fname in "${timoloFiles[@]}" ; do
-
     wget_output=$(wget -O $fname -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
-
 done
 
 wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
 wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
 
 if [ ! -f timolo2.sh ]; then     # check if local file exists.
-    wget -O timolo2.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2.sh
+    wget -O timolo2-cam.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-cam.sh
 fi
 
 if [ ! -f supervisor/timolo2-cam.conf ]; then     # check if local file exists.
     wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
 fi
 
-if [ ! -f webserver.sh ]; then     # check if local file exists.
-    wget -O webserver.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.sh
+if [ ! -f timolo2-web.sh ]; then     # check if local file exists.
+    wget -O timolo2-web.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-web.sh
 fi
 
 if [ ! -f supervisor/timolo2-web.conf ]; then     # check if local file exists.
@@ -213,7 +211,7 @@ if [ "$DIR" != "$INSTALL_PATH" ]; then
 fi
 
 # cleanup old files from previous versions of install
-cleanup_files=("get-pip.py" "gdrive" "makevideo.conf.prev"  \
+cleanup_files=("webserver.py" "webserver.sh" "timolo2.py" "timolo2.sh" "get-pip.py" "gdrive" "makevideo.conf.prev"  \
 "sync.sh" "rclone-sync-new.sh" "rclone-videos-new.sh")
 
 for fname in "${cleanup_files[@]}" ; do

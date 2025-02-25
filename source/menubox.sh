@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ver="13.00"
+ver="13.20"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR
@@ -24,36 +24,36 @@ function do_anykey ()
 #------------------------------------------------------------------------------
 function init_status ()
 {
-  clear
-  if [ -z "$( pgrep -f timolo2.py )" ]; then
+
+  if [ -z "$( pgrep -f timolo2-cam.py )" ]; then
     PTMLO_1="START"
     PTMLO_2="timolo2-cam - STOPPED"
   else
-     pi_timolo_pid=$(pgrep -f timolo2.py )
+     pi_timolo_pid=$(pgrep -f timolo2-cam.py )
      PTMLO_1="STOP"
      PTMLO_2="timolo2-cam - RUNNING PID: $pi_timolo_pid"
   fi
 
-  clear
-  if [  "$( sudo supervisorctl status pi-timolo2-web | grep RUNNING )" ]; then
+  if [ -z "$( pgrep -f timolo2-web.py )" ]; then
+     WEB_1="START"
+     WEB_2="timolo2-web - STOPPED"
+   else
      myip=$( ip route get 8.8.8.8 | sed -n '/src/{s/.*src *\([^ ]*\).*/\1/p;q}' )
      myport=$( grep "WEB_SERVER_PORT" config.py | cut -d "=" -f 2 | cut -d "#" -f 1 | awk '{$1=$1};1' )
      WEB_1="STOP"
      WEB_2="timolo2-web - RUNNING http://$myip:$myport"
-  else
-     WEB_1="START"
-     WEB_2="timolo2-web - STOPPED"
   fi
 }
 
 #------------------------------------------------------------------------------
 function do_pi_timolo ()
 {
-  if [ -z "$( pgrep -f timolo2.py )" ]; then
-     $DIR/timolo2.sh start
+  clear
+  if [ -z "$( pgrep -f timolo2-cam.py )" ]; then
+     $DIR/timolo2-cam.sh start
   else
-     pi_timolo_pid=$( pgrep -f timolo2.py )
-     $DIR/timolo2.sh stop
+     pi_timolo_pid=$( pgrep -f timolo2-cam.py )
+     $DIR/timolo2-cam.sh stop
   fi
   do_main_menu
 }
@@ -61,15 +61,14 @@ function do_pi_timolo ()
 #------------------------------------------------------------------------------
 function do_webserver ()
 {
-  if [ "$( sudo supervisorctl status pi-timolo2-web | grep RUNNING )" ]; then
-     $DIR/webserver.sh stop
-     clear
-  else
-     $DIR/webserver.sh start
-     clear
+  clear
+  if [ -z "$( pgrep -f timolo2-web.py )" ]; then
+     $DIR/timolo2-web.sh start
      myip=$( ip route get 8.8.8.8 | sed -n '/src/{s/.*src *\([^ ]*\).*/\1/p;q}' )
      myport=$( grep "WEB_SERVER_PORT" config.py | cut -d "=" -f 2 | cut -d "#" -f 1 | awk '{$1=$1};1' )
      whiptail --msgbox --title "Webserver Access" "Access pi-timolo2 web server from another network computer web browser using url http://$myip:$myport" 15 50
+  else
+     $DIR/timolo2-web.sh stop
   fi
   do_main_menu
 }
