@@ -3,10 +3,16 @@
 # You will then be able close the terminal session.
 # use the edit option and change autostart=true
 
-user=$( whoami )
-service_name="timolo2-cam"
-conf_file_dir="/home/$user/pi-timolo2/supervisor"
+# initialize script variables
+login_id=$( whoami )
+timolo2_dir=$( pwd )
+service_name="timolo2-web"
+conf_file_dir="/home/$login_id/pi-timolo2/supervisor"
 conf_file_name="timolo2-cam.conf"
+
+# change supervisor conf file for current logged in user
+sed -i s/^login=.*/login=$login_id/ $conf_file_dir/$conf_file_name
+sed -i s/^directory=.*/directory=$timolo2_dir/ $conf_file_dir/$conf_file_name
 
 # webserver.sh ver 13.15 written by Claude Pageau
 echo "-----------------------------------------------"
