@@ -36,8 +36,8 @@ INFO  : $progName $ver  written by Claude Pageau
 "
 echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
-timoloFiles=("menubox.sh" "timolo2-cam.py" "image-stitching" "config.cfg" \
-"timolo2-web.py" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
+timoloFiles=("menubox.sh" "timolo2-cam.py" "timolo2-cam.sh" "timolo2-web.py" "timolo2-web.sh" \
+"image-stitching" "config.cfg" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
 
 for fname in "${timoloFiles[@]}" ; do
     wget_output=$(wget -O $fname -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/$fname)
@@ -46,22 +46,8 @@ done
 wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
 wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
 
-if [ ! -f timolo2-cam.sh ]; then     # check if local file exists.
-    wget -O timolo2-cam.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-cam.sh
-fi
-
-if [ ! -f supervisor/timolo2-cam.conf ]; then     # check if local file exists.
-    wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
-fi
-
-if [ ! -f timolo2-web.sh ]; then     # check if local file exists.
-    wget -O timolo2-web.sh -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-web.sh
-fi
-
-if [ ! -f supervisor/timolo2-web.conf ]; then     # check if local file exists.
-    wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
-fi
-
+wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
+wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
 wget -O supervisor/Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/Readme.md
 
 wget -q --show-progress -nc https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
