@@ -9,7 +9,7 @@ Oct 2020 Added panoramic pantilt option plus other improvements.
 """
 from __future__ import print_function
 
-PROG_VER = "ver 13.18"  # Requires Latest 13.13 release of config.py
+PROG_VER = "ver 13.19"  # Requires Latest 13.13 release of config.py
 __version__ = PROG_VER  # May test for version number at a future time
 import logging
 import os
@@ -1021,32 +1021,32 @@ def writeTextToImage(image_path, date_to_print, currentday_mode):
     directly on top or bottom of images.
     """
     if SHOW_TEXT_WHITE:
-        text_foreground_colour = (255, 255, 255)  # rgb settings for white text text_foreground_colour
+        text_foreground_colour = CV_WHITE  # rgb settings for white text text_foreground_colour
         text_colour = "White"
     else:
-        text_foreground_colour = (0, 0, 0)  # rgb settings for black text text_foreground_colour
+        text_foreground_colour = CV_BLACK  # rgb settings for black text text_foreground_colour
         text_colour = "Black"
         if SHOW_TEXT_WHITE_NIGHT and (not currentday_mode):
             # rgb settings for black text text_foreground_colour
-            text_foreground_colour = (255, 255, 255)
+            text_foreground_colour = CV_WHITE
             text_colour = "White"
     img_data = cv2.imread(image_path)
     # This is grayscale image so channels is not avail or used
-    height, width, channels = img_data.shape
+    img_height, img_width, channels = img_data.shape
     # centre text and compensate for graphics text being wider
-    im_x = int((width / 2) - (len(image_path) * 2))
+    img_xpos = int((img_width / 2) - (len(image_path) * 2))
     if SHOW_TEXT_BOTTOM:
-        im_y = height - 50  # show text at bottom of image
+        img_ypos = img_height - 50  # show text at bottom of image
     else:
-        im_y = 10  # show text at top of image
+        img_ypos = 10  # show text at top of image
 
-    TEXT = IMAGE_NAME_PREFIX + date_to_print
+    image_txt = IMAGE_NAME_PREFIX + date_to_print
     font_path = "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"
     font = ImageFont.truetype(font_path, SHOW_TEXT_FONT_SIZE, encoding="unic")
     try:
-        image_text = TEXT.decode("utf-8")  # required for python2
+        image_text = image_txt.decode("utf-8")  # required for python2
     except:
-        image_text = TEXT  # Just set for python3
+        image_text = image_txt  # Just set for python3
 
     im_draw = Image.open(image_path)
 
@@ -1057,7 +1057,7 @@ def writeTextToImage(image_path, date_to_print, currentday_mode):
         logging.error("File Not Found %s", image_path)
         pass
     draw = ImageDraw.Draw(im_draw)
-    draw.text((im_x, im_y), image_text, text_foreground_colour, font=font)
+    draw.text((img_xpos, img_ypos), image_text, text_foreground_colour, font=font)
     if (IMAGE_FORMAT.lower == ".jpg" or IMAGE_FORMAT.lower == ".jpeg"):
         im_draw.save(image_path, quality="keep")
     else:
