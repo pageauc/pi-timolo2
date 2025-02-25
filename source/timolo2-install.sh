@@ -36,7 +36,7 @@ INFO  : $progName $ver  written by Claude Pageau
 "
 echo "Note: config.py will not be overwritten. Updated settings are in config.py.new"
 
-timoloFiles=("menubox.sh" "timolo2-cam.py" "image-stitching" "config.cfg" "strmpilibcam.py" \
+timoloFiles=("menubox.sh" "timolo2-cam.py" "image-stitching" "config.cfg" \
 "timolo2-webs.py" "makevideo.sh" "mvleavelast.sh" "strmpilibcam.py")
 
 for fname in "${timoloFiles[@]}" ; do
@@ -230,7 +230,7 @@ fi
 
 echo "
 -----------------------------------------------
-INFO  : $STATUS Complete ver 13.1
+INFO  : $STATUS Complete ver 13.20
 -----------------------------------------------
 Minimal Instructions:
 1 - Run sudo raspi-config Interfacing Options and enable I2C and Pi Camera
@@ -252,14 +252,14 @@ Minimal Instructions:
 	This will allow proper operation of menubox.ah
 
     cd ~/pi-timolo2
-    ./timolo.sh install
-    ./webserver.sh install
+    ./timolo2-cam.sh install
+    ./timolo2-web.sh install
 
 6 - To Test Run pi-timolo2 execute the following commands in RPI SSH
     or terminal session. Default is Motion Track On and TimeLapse On
 
     cd ~/pi-timolo2
-    ./timolo2.py
+    ./timolo2-cam.py
 
 7 - To manage pi-timolo2, Run menubox.sh per commands below
 
