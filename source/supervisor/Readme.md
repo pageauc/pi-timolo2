@@ -3,7 +3,8 @@ The bash scripts manage the timolo2 supervisorctl background service for timolo2
 per the associated [configuration .conf files ](https://raw.githubusercontent.com/pageauc/pi-timolo2/refs/heads/main/source/supervisor/timolo2-cam.conf) 
 located in the supervisor folder. 
 The scripts can start the .py scripts as background tasks under the specified user= in the conf file settings. 
-These processes will by default not auto start on boot but will attempt a restart if there is a program issue. Eg problem with camera.
+These .conf files will by default not autostart run on boot but will attempt a restart if there is a program issue. 
+Eg problem with camera.
 
 The shell script install option creates a symlink at ***/etc/supervisor/conf.d*** folder back 
 to the pi-timolo2/supervisor folder .conf files.  Use ./timolo2-cam.sh and/or timolo2-web.sh to manage options.
@@ -30,8 +31,8 @@ example .
       status       Status of supervisor service
       edit         nano edit /home/pi/pi-timolo2/supervisor
       log          tail -n 200 /var/log/timolo2-cam.log
-      install      Install symbolic link for webserver supervisor service
-      uninstall    Uninstall symbolic link for webserver supervisor service
+      install      Install symbolic link for timolo2-cam supervisor service
+      uninstall    Uninstall symbolic link for timolo2-cam supervisor service
       upgrade      Upgrade pi-timolo2 files from GitHub
       help        
 
