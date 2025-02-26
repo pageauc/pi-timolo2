@@ -9,7 +9,7 @@ before performing curl install, since it is **Not** performed by the ***timolo2-
 Internet access is Required. Login to Raspberry Pi via ssh or locally with a terminal session open. In user home folder eg /home/pi 
 
 #### Step 1
-Press GitHub copy icon on right side of code box below. copied will be displayed.                
+Press GitHub copy icon on right side of code box below. Copied! will be displayed.                
 
     curl -L https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-install.sh | bash
 
@@ -22,8 +22,7 @@ An upgrade will not overwrite configuration files. Brief instructions are displa
 ### Introduction
 PI-TIMOLO2 is primarily designed for ***headless operation*** and includes rclone that
 can securely synchronize specified media folders and files with a users remote storage service of choice. This works well for remote security and monitoring
-cameras. Low Light uses a different algorithm based on a video stream thread frame px average below ***DARK_START_PXAVE*** per config.py setting.  Seems to woek ok
-Consider this release Beta.  I am still testing and updating.  Issues are welcome
+cameras. Low Light uses a different algorithm based on a video stream thread frame px average below ***DARK_START_PXAVE*** per config.py setting.
 
 It runs using libcamera and picamera2 python library, Bullseye (libcamera config), Bookworm Raspberry Pi OS and later.
 This release points to original pi-timolo wiki that may sometimes not be relavent to pi-timolo2 features.
@@ -45,7 +44,10 @@ For more Details see [Github Wiki](https://github.com/pageauc/pi-timolo/wiki)
 A basic (simplified) lolight timelapse project can be found at https://github.com/pageauc/lolight
 This was used for code testing as part of pi-timolo upgrade.
 
-## Requirements
+Github Issues are welcome.
+
+## Instructions
+
 Requires a [***Raspberry Pi computer***](https://www.raspberrypi.org/documentation/setup/) and a 
 [***RPI camera module installed***](https://www.raspberrypi.org/documentation/usage/camera/).
 Make sure hardware is tested and works. Most [RPI models](https://www.raspberrypi.org/products/) will work OK. 
@@ -83,7 +85,7 @@ This supports pano stitching mode, pantilt sequence on motion or timelapse seque
     cd ~/pi-timolo2
     ./menubox.sh
 
-## Menubox.sh
+#### Menubox.sh
 pi-timolo2 has a whiptail administration menu system. The menu's allow
 start/stop of timolo2-cam.py and/or timolo2-web.py as background tasks, as well as
 editing configuration files, making timelapse videos from jpg images, converting or joining mp4 files Etc.    
@@ -95,7 +97,7 @@ To run menubox.sh from ssh console or terminal session execute commands below.
 
 ![menubox main menu](menubox.png)
  
-## timolo2-web.py
+#### timolo2-web.py
 I have also written a standalone LAN based timolo2-web.py to allow easy access to pi-timolo2 image, video files
 on the Raspberry from another LAN computer web browser.  There is no setup required but the display
 settings can be customized via variables in the config.py file or via menubox admin menuing.     
@@ -103,7 +105,10 @@ settings can be customized via variables in the config.py file or via menubox ad
 To Test Run from ssh console or terminal session. 
     
     cd ~/pi-timolo2
-    ./timolo2-web.py
+    ./timolo2-web-sh install
+    ./timolo2-web.py        # Ctrl-c exits
+    ./timolo2-web.sh start  # runs web server in background
+    ./menubox.sh            # Menu system to manage programs and settings
 
 ![webserver browser screen shot](webserver.jpg)
 
