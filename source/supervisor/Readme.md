@@ -1,6 +1,7 @@
 ## timolo2-cam.sh and timolo2-web.sh
 The bash scripts manage the timolo2 supervisorctl background service for timolo2-cam.py and timolo2-web.py
-per the associated configuration files (.conf) located in the supervisor folder. 
+per the associated [configuration .conf files ](https://raw.githubusercontent.com/pageauc/pi-timolo2/refs/heads/main/source/supervisor/timolo2-cam.conf) 
+located in the supervisor folder. 
 The scripts can start the .py scripts as background tasks under the specified user= in the conf file settings. 
 These processes will by default not auto start on boot but will attempt a restart if there is a program issue. Eg problem with camera.
 
