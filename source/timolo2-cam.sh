@@ -97,8 +97,8 @@ Usage: ./$(basename "$0") [Option]
   status       Status of supervisor service
   edit         nano edit $conf_file_dir
   log          tail -n 200 /var/log/$service_name.log
-  install      Install symbolic link for webserver supervisor service
-  uninstall    Uninstall symbolic link for webserver supervisor service
+  install      Install symbolic link for timolo2-cam supervisor service
+  uninstall    Uninstall symbolic link for timolo2-cam supervisor service
   upgrade      Upgrade pi-timolo2 files from GitHub
   help         Display Usage message and Status
 
