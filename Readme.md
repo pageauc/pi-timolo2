@@ -3,22 +3,21 @@
 Also PanTilt Pano Image Stiching, PanTilt Sequence, Video Repeat, Quick Timelapse, Plugins, RClone Sync Folder Upload, Etc.
 
 ## Quick Install or Upgrade
-**IMPORTANT** - It is suggested run ***sudo apt-get update*** and ***sudo apt-get upgrade***
-before curl install, since it is **Not** performed by the timolo2-install.sh script
+**IMPORTANT** - It is suggested to run ***sudo apt-get update*** and ***sudo apt-get upgrade***
+before performing curl install, since it is **Not** performed by the ***timolo2-install.sh*** script
 
 Internet access is Required. Login to Raspberry Pi via ssh or locally with a terminal session open. In user home folder eg /home/pi 
 
 #### Step 1
-Press GitHub copy icon on right side of code box below. copied will be displayed                
+Press GitHub copy icon on right side of code box below. copied will be displayed.                
 
     curl -L https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-install.sh | bash
 
 #### Step 2
-On RPI putty SSH or local terminal session, right click, select paste then Enter to download and run script.  
+On RPI putty SSH or local terminal session, right click, select paste then Enter to download and run install script.  
 
 The curl command will download and Run the GitHub [***timolo2-install.sh***](https://github.com/pageauc/pi-timolo2/blob/main/source/timolo2-install.sh) script. 
-An upgrade will not overwrite configuration files.   
-
+An upgrade will not overwrite configuration files. Brief instructions are displayed at the end of the install.
 
 ### Introduction
 PI-TIMOLO2 is primarily designed for ***headless operation*** and includes rclone that
