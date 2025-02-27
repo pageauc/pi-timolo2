@@ -362,6 +362,8 @@ function do_settings_menu ()
   "b VIEW" "config.py for pi-timolo & webserver" \
   "c EDIT" "nano makevideo.conf  makevideo.sh & config.sh Settings" \
   "d VIEW" "makevideo.conf  makevideo.sh & config.sh Settings" \
+  "e CAM " "edit timolo2-cam.conf for supervisorctl" \
+  "f WEB " "edit timolo2-web.conf for supervisorctl" \
   "q BACK" "To Main Menu" 3>&1 1>&2 2>&3 )
 
   RET=$?
@@ -383,6 +385,11 @@ function do_settings_menu ()
             cat $DIR/makevideo.conf
             do_anykey
             do_settings_menu ;;
+      e\ *) ./timolo2-cam.sh edit
+	        do_anykey
+            do_settings_menu ;;
+      f\ *) ./timolo2-web.sh edit
+            do_settings_menu ;;			
       q\ *) clear
             rm -f $filename_temp
             rm -f $filename_conf
@@ -547,7 +554,7 @@ function do_main_menu ()
   "f RCLONE" "Manage File Transfers to Remote Storage" \
   "g REMOTE" "Manage pi-timolo2 using watch-app.sh" \
   "h UPGRADE" "Program Files from GitHub.com" \
-  "i STATUS" "CPU $temp   Select to Refresh" \
+  "i STATUS" "CPU $temp and supervisorctl status" \
   "j HELP" "View Readme.md" \
   "k ABOUT" "menubox.sh" \
   "q QUIT" "Exit This Menu Program"  3>&1 1>&2 2>&3)
@@ -567,6 +574,9 @@ function do_main_menu ()
       h\ *) clear
             do_upgrade ;;
       i\ *) clear
+	        ./timolo2-cam.sh status
+			do_anykey
+			clear
             do_main_menu ;;
       j\ *) pandoc -f markdown -t plain  Readme.md | more
             do_anykey
