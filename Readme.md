@@ -31,13 +31,13 @@ pi-timolo2 uses supervisor to launch timolo2-cam.py or timolo2-web.py in backgro
 Use timolo2.sh, webserver.sh to manage (see help eg ***./timolo2.sh help***)
 or menubox.sh when supervisor processes installed.   
 
-python scripts use python3 only and can take timelapse and/or motion tracking images/videos, separately or together. Will take
+Python scripts use python3 only and can take timelapse and/or motion tracking images/videos, separately or together. Will take
 long exposure Night/Dark (lowlight) images for Time Lapse and/or Motion. Customization settings are saved in a [***config.py***](https://github.com/pageauc/pi-timolo2/blob/main/source/config.py) ,
 conf files and optional special purpose plugin config files located in the ***plugins*** folder. 
 Optional plugin feature allows overlaying config.py settings with custom settings for specific tasks.  
 
-Includes ***makevideo.sh*** to create timelapse or motion lapse videos from images, a simple minimum or no setup web server to
-view images or videos. Use ***menubox.sh*** to admin settings and stop start, pi-timolo and webserver as background tasks. 
+Includes ***makevideo.sh*** to create timelapse or motion lapse videos from images. Use webserver to
+view images or videos. ***menubox.sh*** can admin settings and stop start, timolo2.cam.py and timolo2-web.py as background tasks. 
        
 For more Details see [Github Wiki](https://github.com/pageauc/pi-timolo/wiki)   
 ***Note:*** This points to original pi-timolo and some information might not be relavent or wrong for pi-timolo2
