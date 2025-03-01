@@ -67,7 +67,7 @@ This supports pano stitching mode, pantilt sequence on motion or timelapse seque
 
 3 - You will need to create symlinks to enable supervisorctl operation per below.
 	This will allow proper operation of menubox.sh START/STOP menu picks.
-	See Details st supervisor [Readme.md](https://raw.githubusercontent.com/pageauc/pi-timolo2/refs/heads/main/source/supervisor/Readme.md)
+	See Details at [supervisor Readme.md](https://raw.githubusercontent.com/pageauc/pi-timolo2/refs/heads/main/source/supervisor/Readme.md)
 
     cd ~/pi-timolo2
     ./timolo2-cam.sh install  # installs symlink for supervisorctl
