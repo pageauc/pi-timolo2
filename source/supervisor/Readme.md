@@ -9,23 +9,23 @@ Eg problem with camera.
 ### Install
 
 The shell scripts ***install*** option creates a symlink at ***/etc/supervisor/conf.d*** folder back
-to the speed-camera/supervisor folder .conf files.  Use ./timolo2-cam.sh and/or timolo2-web.sh to manage install option.
+to the pi-timolo2/supervisor folder .conf files.  Use ./timolo2-cam.sh and/or timolo2-web.sh to manage install option.
 
-    cd ~/speed-camera
+    cd ~/pi-timolo2
     ./timolo2-cam.sh install
     ./timolo2-web.sh install
 	
 Make sure you have test run timolo2-cam.py and timolo2-web.py to make sure they run correctly.
 Use Ctrl-c to Exit python scripts.
 
-    cd ~/speed-camera
+    cd ~/pi-timolo2
     ./timolo2-cam.py
 	
     ./timolo2-web.py
 	
 If they run OK, you can start them as a background process directly per below or use menubox.sh
 
-     cd ~/speed-camera
+     cd ~/pi-timolo2
     ./timolo2-cam.sh start
     ./timolo2-web.sh start
 	
@@ -39,7 +39,7 @@ If they run OK, you can start them as a background process directly per below or
 ### Run
 Access help for timolo2-cam.sh and or timolo2-web.sh
 
-    cd ~/speed-camera
+    cd ~/pi-timolo2
     ./timolo2-cam.sh help
 
     -----------------------------------------------
@@ -86,7 +86,7 @@ To edit a .conf file Eg. supervisor/timolo2-cam.conf
 	startsecs=5
 	user=pi
 	command=python3 timolo2-cam.py
-	directory=/home/pi/speed-camera/
+	directory=/home/pipi-timolo2/
 	stdout_logfile=/var/log/timolo2-cam.log
 	stdout_logfile_maxbytes=1MB
 	stdout_logfile_backups=1
@@ -117,7 +117,7 @@ autorestart=false is the default. If there is a problem manually run the appropr
 	speed-web                      RUNNING   pid 1454, uptime 16:43:46
 
 
-	pi@rpi-arducam:~/speed-camera $ ./timolo2-cam.py
+	pi@rpi-arducam:~/pi-timolo2 $ ./timolo2-cam.py
 	Loading Wait...
 	----------------------------------------------------------------------
 	timolo2-cam.py 13.2  written by Claude Pageau
