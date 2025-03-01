@@ -400,38 +400,6 @@ function do_settings_menu ()
 }
 
 #------------------------------------------------------------------------------
-function do_watch_menu ()
-{
-  SET_SEL=$( whiptail --title "watch-app.sh Menu" --menu "Arrow/Enter Selects or Tab Key" 0 0 0 --ok-button Select --cancel-button Back \
-  "a EDIT" "Edit watch-app.sh using nano" \
-  "b RUN" "Test Run watch-app.sh" \
-  "c CRON" "Edit crontab" \
-  "d ABOUT" "About watch-app.sh Remote Configure" \
-  "q BACK" "To Main Menu" 3>&1 1>&2 2>&3 )
-
-  RET=$?
-  if [ $RET -eq 1 ]; then
-    clear
-    do_main_menu
-  elif [ $RET -eq 0 ]; then
-    case "$SET_SEL" in
-      a\ *) nano watch-app.sh
-            do_watch_menu ;;
-      b\ *) ./watch-app.sh
-            do_anykey
-            do_watch_menu ;;
-      c\ *) sudo crontab -e
-            do_watch_menu ;;
-      d\ *) do_watch_about
-            do_watch_menu ;;
-      q\ *) clear
-            do_main_menu ;;
-      *) whiptail --msgbox "Programmer error: unrecognised option" 20 60 1 ;;
-    esac || whiptail --msgbox "There was an error running selection $SELECTION" 20 60 1
-  fi
-}
-
-#------------------------------------------------------------------------------
 function do_watch_about ()
 {
   whiptail --title "About watch-app.sh" --msgbox "\
@@ -552,11 +520,10 @@ function do_main_menu ()
   "d PLUGINS" "Edit Plugin Files" \
   "e CREATE" "MP4 Timelapse Video from jpg Images" \
   "f RCLONE" "Manage File Transfers to Remote Storage" \
-  "g REMOTE" "Manage pi-timolo2 using watch-app.sh" \
-  "h UPGRADE" "Program Files from GitHub.com" \
-  "i STATUS" "CPU $temp and supervisorctl status" \
-  "j HELP" "View Readme.md" \
-  "k ABOUT" "menubox.sh" \
+  "g UPGRADE" "Program Files from GitHub.com" \
+  "h STATUS" "CPU $temp and supervisorctl status" \
+  "i HELP" "View Readme.md" \
+  "j ABOUT" "menubox.sh" \
   "q QUIT" "Exit This Menu Program"  3>&1 1>&2 2>&3)
 
   RET=$?
@@ -570,18 +537,17 @@ function do_main_menu ()
       d\ *) do_plugins_menu ;;
       e\ *) do_makevideo_menu ;;
       f\ *) do_sync_menu ;;
-      g\ *) do_watch_menu ;;
-      h\ *) clear
+      g\ *) clear
             do_upgrade ;;
-      i\ *) clear
+      h\ *) clear
 	        ./timolo2-cam.sh status
 			do_anykey
 			clear
             do_main_menu ;;
-      j\ *) pandoc -f markdown -t plain  Readme.md | more
+      i\ *) pandoc -f markdown -t plain  Readme.md | more
             do_anykey
             do_main_menu ;;
-      k\ *) do_about
+      j\ *) do_about
             do_main_menu ;;
       q\ *) clear
             exit ;;
