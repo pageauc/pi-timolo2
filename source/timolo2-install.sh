@@ -4,9 +4,6 @@ ver="13.16"
 progName=$(basename -- "$0")
 TIMOLO2_DIR='pi-timolo2'  # Default folder install location
 
-# Make sure ver below matches latest rclone ver on https://downloads.rclone.org/rclone-current-linux-arm.zip
-rclone_cur_ver="rclone v1.69.1"
-
 cd ~
 
 is_upgrade=false
@@ -130,6 +127,7 @@ chmod +x *sh
 
 cd ..
 
+# Make sure ver below matches latest rclone ver on https://downloads.rclone.org/rclone-current-linux-arm.zip
 rclone_install=true
 if [ -f /usr/bin/rclone ]; then
     /usr/bin/rclone version
