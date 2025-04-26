@@ -4,9 +4,6 @@ ver="13.16"
 progName=$(basename -- "$0")
 TIMOLO2_DIR='pi-timolo2'  # Default folder install location
 
-# Make sure ver below matches latest rclone ver on https://downloads.rclone.org/rclone-current-linux-arm.zip
-rclone_cur_ver="rclone v1.69.1"
-
 cd ~
 
 is_upgrade=false
@@ -46,10 +43,13 @@ done
 wget -O Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/Readme.md
 wget -O media/webserver.txt -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/webserver.txt
 
-wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
-wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
+if [ ! -f supervisor/timolo2-cam.conf ]; then  # check if local file does not exist.
+    wget -O supervisor/timolo2-cam.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-cam.conf
+fi
+if [ ! -f supervisor/timolo2-web.conf ]; then # check if local does not file exist.
+    wget -O supervisor/timolo2-web.conf -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/timolo2-web.conf
+fi
 wget -O supervisor/Readme.md -q --show-progress https://raw.github.com/pageauc/pi-timolo2/master/source/supervisor/Readme.md
-
 wget -q --show-progress -nc https://raw.github.com/pageauc/pi-timolo2/master/source/user_motion_code.py
 
 if [ -f config.py ]; then     # check if local file exists.
@@ -130,10 +130,12 @@ chmod +x *sh
 
 cd ..
 
+# Make sure ver below matches latest rclone ver on https://downloads.rclone.org/rclone-current-linux-arm.zip
 rclone_install=true
 if [ -f /usr/bin/rclone ]; then
     /usr/bin/rclone version
-    rclone_ins_ver=$( /usr/bin/rclone version | grep rclone )
+    rclone_ins_ver=$( rclone version --check | grep yours: | awk '{print $2}')
+	rclone_cur_ver=$( rclone version --check | grep latest: | awk '{print $2}')
     if [ "$rclone_ins_ver" == "$rclone_cur_ver" ]; then
         rclone_install=false
     fi

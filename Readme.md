@@ -8,18 +8,18 @@ before performing curl install, since it is **Not** performed by the ***timolo2-
 
 Internet access is Required. Login to Raspberry Pi via ssh or locally with a terminal session open. In user home folder eg /home/pi 
 
-#### Step 1
+##### Step 1
 Press GitHub copy icon on right side of code box below. Copied! will be displayed.                
 
     curl -L https://raw.github.com/pageauc/pi-timolo2/master/source/timolo2-install.sh | bash
 
-#### Step 2
+##### Step 2
 On RPI putty SSH or local terminal session, right click, select paste then Enter to download and run install script.  
 
 The curl command will download and Run the GitHub [***timolo2-install.sh***](https://github.com/pageauc/pi-timolo2/blob/main/source/timolo2-install.sh) script. 
 An upgrade will not overwrite configuration files. Brief instructions are displayed at the end of the install.
 
-### Introduction
+## Introduction
 PI-TIMOLO2 is primarily designed for ***headless operation*** and includes rclone that
 can securely synchronize specified media folders and files with a users remote storage service of choice. This works well for remote security and monitoring
 cameras. Low Light uses a different algorithm based on a video stream thread frame px average below ***DARK_START_PXAVE*** per config.py setting.
@@ -31,13 +31,13 @@ pi-timolo2 uses supervisor to launch timolo2-cam.py or timolo2-web.py in backgro
 Use timolo2.sh, webserver.sh to manage (see help eg ***./timolo2.sh help***)
 or menubox.sh when supervisor processes installed.   
 
-python scripts use python3 only and can take timelapse and/or motion tracking images/videos, separately or together. Will take
+Python scripts use python3 only and can take timelapse and/or motion tracking images/videos, separately or together. Will take
 long exposure Night/Dark (lowlight) images for Time Lapse and/or Motion. Customization settings are saved in a [***config.py***](https://github.com/pageauc/pi-timolo2/blob/main/source/config.py) ,
 conf files and optional special purpose plugin config files located in the ***plugins*** folder. 
 Optional plugin feature allows overlaying config.py settings with custom settings for specific tasks.  
 
-Includes ***makevideo.sh*** to create timelapse or motion lapse videos from images, a simple minimum or no setup web server to
-view images or videos. Use ***menubox.sh*** to admin settings and stop start, pi-timolo and webserver as background tasks. 
+Includes ***makevideo.sh*** to create timelapse or motion lapse videos from images. Use webserver to
+view images or videos. ***menubox.sh*** can admin settings and stop start, timolo2.cam.py and timolo2-web.py as background tasks. 
        
 For more Details see [Github Wiki](https://github.com/pageauc/pi-timolo/wiki)   
 ***Note:*** This points to original pi-timolo and some information might not be relavent or wrong for pi-timolo2
@@ -67,6 +67,7 @@ This supports pano stitching mode, pantilt sequence on motion or timelapse seque
 
 3 - You will need to create symlinks to enable supervisorctl operation per below.
 	This will allow proper operation of menubox.sh START/STOP menu picks.
+	See Details at [supervisor Readme.md](https://github.com/pageauc/pi-timolo2/tree/main/source/supervisor)
 
     cd ~/pi-timolo2
     ./timolo2-cam.sh install  # installs symlink for supervisorctl
