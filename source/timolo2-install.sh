@@ -182,6 +182,7 @@ sudo apt install -yq ffmpeg   # required for Buster and later.
 sudo apt install -yq pandoc   # convert markdown to plain text for Readme.md
 sudo apt install -yq dos2unix
 sudo apt install -yq exiv2    # Buster
+sudo apt-get install -yq fonts-freefont-ttf # Required for Lite Only
 
 cd $TIMOLO2_DIR
 
